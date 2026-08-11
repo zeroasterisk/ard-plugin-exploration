@@ -8,6 +8,8 @@ if [ -z "$PROMPT" ]; then
   exit 1
 fi
 
+echo -e "\033[0;36m> using podman container · asking opencode · using deepseek-v4-flash-free\033[0m\n"
+
 SESSION_FLAG=""
 if [ -f "/tmp/opencode_session_active" ]; then
   SESSION_FLAG="--continue"

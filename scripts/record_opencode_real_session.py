@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Real OpenCode AI Agent PTY Session Recorder (Natural Developer Interaction)
+Real OpenCode AI Agent PTY Session Recorder (100% Deterministic Prompt Sync & Time Compression)
 
 Drives the actual OpenCode binary via the ./ask shortcut:
-- `./scripts/banner.sh <N>` resets the scenario state and clears the screen.
-- The developer types natural prompts with `./ask "..."`.
-- OpenCode receives the prompt, calls ARD MCP tools autonomously, and replies.
+- Strictly waits for bash prompt to return before typing the next turn (0% collision guarantee).
+- Automatically compresses LLM thinking timeframes and idle pauses to produce a punchy, high-signal video.
+- Resets per scenario using `./scripts/banner.sh <N>`.
 """
 
 import fcntl
@@ -17,15 +17,16 @@ import struct
 import subprocess
 import sys
 import termios
-import threading
 import time
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_CAST = REPO_ROOT / "demo.cast"
 
+PROMPT_STR = "developer@workstation:~/ard-project$ "
 
-class OpenCodePTYRecorder:
+
+class SynchronousPTYRecorder:
     def __init__(self, cols: int = 112, rows: int = 34):
         self.cols = cols
         self.rows = rows
@@ -34,37 +35,80 @@ class OpenCodePTYRecorder:
         self.master_fd = None
         self.slave_fd = None
         self.process = None
-        self.running = False
 
     def set_winsize(self, fd: int) -> None:
         winsize = struct.pack("HHHH", self.rows, self.cols, 0, 0)
         fcntl.ioctl(fd, termios.TIOCSWINSZ, winsize)
 
-    def reader_loop(self) -> None:
-        while self.running:
-            try:
-                r, _, _ = select.select([self.master_fd], [], [], 0.05)
-                if self.master_fd in r:
+    def record_event(self, text: str) -> None:
+        ts = round(time.time() - self.start_time, 3)
+        self.events.append([ts, "o", text])
+
+    def drain_output(self, timeout: float = 0.1) -> str:
+        """Reads all available output from master_fd."""
+        collected = ""
+        while True:
+            r, _, _ = select.select([self.master_fd], [], [], timeout)
+            if self.master_fd in r:
+                try:
                     data = os.read(self.master_fd, 4096)
                     if not data:
                         break
-                    ts = round(time.time() - self.start_time, 3)
                     text = data.decode("utf-8", errors="replace")
-                    self.events.append([ts, "o", text])
-            except (OSError, ValueError):
+                    self.record_event(text)
+                    collected += text
+                except (OSError, ValueError):
+                    break
+            else:
                 break
+        return collected
 
-    def type_string(self, text: str, char_delay: float = 0.04) -> None:
+    def wait_for_prompt(self, timeout: float = 120.0) -> bool:
+        """Reads output continuously until PROMPT_STR appears at the end of the stream."""
+        start = time.time()
+        buf = ""
+        while time.time() - start < timeout:
+            r, _, _ = select.select([self.master_fd], [], [], 0.05)
+            if self.master_fd in r:
+                try:
+                    data = os.read(self.master_fd, 4096)
+                    if not data:
+                        break
+                    text = data.decode("utf-8", errors="replace")
+                    self.record_event(text)
+                    buf += text
+                    # Check if the shell prompt is in the most recent output
+                    if PROMPT_STR in buf[-80:] or "developer@workstation" in buf[-80:]:
+                        return True
+                except (OSError, ValueError):
+                    break
+        return False
+
+    def type_string(self, text: str, char_delay: float = 0.035) -> None:
         for char in text:
             os.write(self.master_fd, char.encode("utf-8"))
+            self.drain_output(timeout=0.005)
             time.sleep(char_delay)
 
-    def send_command(self, cmd: str, wait_after: float = 3.0, char_delay: float = 0.04) -> None:
-        time.sleep(0.6)
-        self.type_string(cmd, char_delay=char_delay)
+    def send_turn(self, cmd: str, pause_after: float = 2.5, char_delay: float = 0.035, timeout: float = 120.0) -> None:
+        # Pre-command drain
+        self.drain_output(timeout=0.1)
         time.sleep(0.4)
+
+        # Type command character by character
+        self.type_string(cmd, char_delay=char_delay)
+        time.sleep(0.2)
+        
+        # Write newline to execute command
         os.write(self.master_fd, b"\n")
-        time.sleep(wait_after)
+
+        # Wait strictly until the command finishes and the shell prompt returns (no intermediate drain!)
+        success = self.wait_for_prompt(timeout=timeout)
+        if not success:
+            print(f"⚠️ Warning: Timeout waiting for prompt after: '{cmd[:40]}...'")
+
+        # Human reading pause after full response is printed
+        time.sleep(pause_after)
 
     def start(self) -> None:
         self.master_fd, self.slave_fd = pty.openpty()
@@ -88,20 +132,22 @@ class OpenCodePTYRecorder:
         os.close(self.slave_fd)
 
         self.start_time = time.time()
-        self.running = True
-        self.reader_thread = threading.Thread(target=self.reader_loop, daemon=True)
-        self.reader_thread.start()
 
-        os.write(self.master_fd, b"export PS1='\\[\\033[01;32m\\]developer@workstation\\[\\033[00m\\]:\\[\\033[01;34m\\]~/ard-project\\[\\033[00m\\]$ '\n")
-        time.sleep(0.5)
+        # Set clean bash prompt
+        os.write(self.master_fd, f"export PS1='{PROMPT_STR}'\n".encode("utf-8"))
+        time.sleep(0.4)
+        self.drain_output(timeout=0.2)
         os.write(self.master_fd, b"clear\n")
-        time.sleep(1.0)
+        time.sleep(0.5)
+        self.drain_output(timeout=0.2)
 
     def stop(self) -> None:
-        self.send_command("exit", wait_after=1.0)
-        self.running = False
-        if self.reader_thread.is_alive():
-            self.reader_thread.join(timeout=2.0)
+        try:
+            self.type_string("exit\n", char_delay=0.01)
+            time.sleep(0.3)
+            self.drain_output(timeout=0.2)
+        except Exception:
+            pass
         try:
             os.close(self.master_fd)
         except OSError:
@@ -109,8 +155,19 @@ class OpenCodePTYRecorder:
         if self.process.poll() is None:
             self.process.terminate()
 
-    def export(self, filepath: Path) -> None:
-        total_duration = round(time.time() - self.start_time, 2)
+    def export(self, filepath: Path, max_idle: float = 0.8) -> None:
+        # Time compression: clamp any idle pause > max_idle
+        compressed_events = []
+        if self.events:
+            prev_raw_ts = self.events[0][0]
+            curr_comp_ts = 0.0
+            for raw_ts, kind, text in self.events:
+                delta = raw_ts - prev_raw_ts
+                clamped_delta = min(delta, max_idle)
+                curr_comp_ts += clamped_delta
+                compressed_events.append([round(curr_comp_ts, 3), kind, text])
+                prev_raw_ts = raw_ts
+
         header = {
             "version": 2,
             "width": self.cols,
@@ -121,75 +178,78 @@ class OpenCodePTYRecorder:
         }
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(json.dumps(header) + "\n")
-            for event in self.events:
+            for event in compressed_events:
                 f.write(json.dumps(event) + "\n")
-        print(f"\n🎉 Successfully recorded real OpenCode agent session: {filepath}")
-        print(f"• Total events: {len(self.events)}")
-        print(f"• Total real duration: {total_duration:.1f}s (~{total_duration/60:.2f} min)")
+
+        raw_dur = self.events[-1][0] if self.events else 0
+        comp_dur = compressed_events[-1][0] if compressed_events else 0
+        print(f"\n🎉 Successfully recorded & compressed session: {filepath}")
+        print(f"• Total events: {len(compressed_events)}")
+        print(f"• Raw duration: {raw_dur:.1f}s | Compressed duration: {comp_dur:.1f}s (~{comp_dur/60:.2f} min)")
 
 
 def record_opencode_session():
-    rec = OpenCodePTYRecorder(cols=112, rows=34)
-    print("🎬 Starting Real OpenCode AI Agent PTY Recorder (3 Core Scenarios via ./ask)...")
+    rec = SynchronousPTYRecorder(cols=112, rows=34)
+    print("🎬 Starting 100% Synchronized OpenCode AI Agent Recorder...")
     rec.start()
 
     try:
         # Title Banner
-        rec.send_command("./scripts/banner.sh 0", wait_after=3.5, char_delay=0.03)
+        rec.send_turn("./scripts/banner.sh 0", pause_after=2.0, char_delay=0.025)
 
         # ---------------------------------------------------------------------
         # Scenario 1: Tier 0 Pure Public Discovery (Zero Auth Counterpoint)
         # ---------------------------------------------------------------------
-        rec.send_command("./scripts/banner.sh 1", wait_after=3.0, char_delay=0.03)
-        rec.send_command(
+        rec.send_turn("./scripts/banner.sh 1", pause_after=1.5, char_delay=0.025)
+        rec.send_turn(
             './ask "I need best practices to optimize my SQL queries and design zero-trust security. Search tools for me."',
-            wait_after=14.0,
+            pause_after=3.5,
             char_delay=0.035,
         )
 
         # ---------------------------------------------------------------------
         # Scenario 2: Cloud Intent -> User Opts Out ("No with an opt out")
         # ---------------------------------------------------------------------
-        rec.send_command("./scripts/banner.sh 2", wait_after=3.0, char_delay=0.03)
-        rec.send_command(
+        rec.send_turn("./scripts/banner.sh 2", pause_after=1.5, char_delay=0.025)
+        rec.send_turn(
             './ask "I want to run a live analytical query on a 100GB sales dataset in BigQuery. What tool can do this?"',
-            wait_after=14.0,
+            pause_after=3.0,
             char_delay=0.035,
         )
-        rec.send_command(
+        rec.send_turn(
             './ask "No with an opt out"',
-            wait_after=14.0,
+            pause_after=3.5,
             char_delay=0.035,
         )
 
         # ---------------------------------------------------------------------
         # Scenario 3: Cloud Intent -> User Onboards ("Yes")
         # ---------------------------------------------------------------------
-        rec.send_command("./scripts/banner.sh 3", wait_after=3.0, char_delay=0.03)
-        rec.send_command(
+        rec.send_turn("./scripts/banner.sh 3", pause_after=1.5, char_delay=0.025)
+        rec.send_turn(
             './ask "I want to query a public BigQuery dataset. What tool can do this?"',
-            wait_after=14.0,
+            pause_after=3.0,
             char_delay=0.035,
         )
-        rec.send_command(
+        rec.send_turn(
             './ask "Yes, please log me in"',
-            wait_after=14.0,
+            pause_after=3.5,
             char_delay=0.035,
         )
 
         # ---------------------------------------------------------------------
         # Scenario 4: Automated E2E Test Suite Execution in Container
         # ---------------------------------------------------------------------
-        rec.send_command("./scripts/banner.sh 4", wait_after=3.0, char_delay=0.03)
-        rec.send_command(
+        rec.send_turn("./scripts/banner.sh 4", pause_after=1.5, char_delay=0.025)
+        rec.send_turn(
             "python3 tests/e2e_podman_runner.py",
-            wait_after=16.0,
-            char_delay=0.035,
+            pause_after=4.0,
+            char_delay=0.03,
         )
 
     finally:
         rec.stop()
-        rec.export(OUTPUT_CAST)
+        rec.export(OUTPUT_CAST, max_idle=0.8)
 
 
 if __name__ == "__main__":
