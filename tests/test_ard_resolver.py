@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-Automated Test Suite for ARD Resolver & Auth Scenarios
+Automated Test Suite for ARD Resolver & Multi-Runtime Auth Scenarios
 
 Tests all key auth configurations using isolated temporary directories and mocked bare environments:
+- Canonical URN format: urn:ai:google.com:...
 - Scenario 1: Active Service Account Key (GOOGLE_APPLICATION_CREDENTIALS)
 - Scenario 2: Active User ADC (~/.config/gcloud/application_default_credentials.json)
 - Scenario 3: gcloud installed, but unauthenticated
 - Scenario 4: Bare system with zero gcloud or credentials
-- Scenario 5: User Opt-Out Mode (strictly filters out Tier 2 cloud tools)
+- Scenario 5: User Opt-Out Mode (strictly filters out Tier >= 3 cloud tools)
 - Scenario 6: Natural language query resolution, scoring, and fallback skills
-- Scenario 7: Persistent preferences and decision recording
+- Scenario 7: Multi-runtime preferences (CLI filesystem, ARD_CONFIG_DIR, and in-memory ARD_PREFERENCES_JSON for ADK)
 """
 
 import json
@@ -39,6 +40,20 @@ class TestARDResolverAuthScenarios(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.test_dir, ignore_errors=True)
 
+    def test_canonical_urn_format(self):
+        """Verify all entries in ai-catalog.json strictly use canonical urn:ai: FQDN format."""
+        with open(self.catalog_path, "r", encoding="utf-8") as f:
+            catalog = json.load(f)
+
+        entries = catalog.get("entries", [])
+        self.assertGreater(len(entries), 10)
+        for entry in entries:
+            identifier = entry.get("identifier", "")
+            self.assertTrue(
+                identifier.startswith("urn:ai:google.com:"),
+                f"Identifier {identifier} does not use canonical urn:ai:google.com: prefix",
+            )
+
     def test_scenario_1_service_account_active(self):
         """Scenario 1: System has GOOGLE_APPLICATION_CREDENTIALS pointing to a valid SA key."""
         sa_key_file = Path(self.test_dir) / "service_account.json"
@@ -56,14 +71,13 @@ class TestARDResolverAuthScenarios(unittest.TestCase):
         self.assertTrue(status.gcp_authenticated)
         self.assertEqual(status.summary, "service_account")
 
-        # In search, Tier 2 tools should be marked as 'ready'
         resolver = ARDCatalogResolver(
             catalog_path=self.catalog_path,
             auth_inspector=inspector,
             prefs_manager=PreferencesManager(config_dir=Path(self.test_dir) / "prefs"),
         )
         results = resolver.search("query bigquery dataset")
-        bq_res = next((r for r in results if "bigquery" in r.identifier), None)
+        bq_res = next((r for r in results if "mcp:bigquery" in r.identifier), None)
         self.assertIsNotNone(bq_res)
         self.assertTrue(bq_res.auth_ready)
         self.assertEqual(bq_res.status, "ready")
@@ -132,7 +146,6 @@ class TestARDResolverAuthScenarios(unittest.TestCase):
         self.assertFalse(status.gcloud_installed)
         self.assertFalse(status.gcp_authenticated)
 
-        # Tier 0 skills MUST be 100% ready and ranked top
         resolver = ARDCatalogResolver(
             catalog_path=self.catalog_path,
             auth_inspector=inspector,
@@ -146,7 +159,7 @@ class TestARDResolverAuthScenarios(unittest.TestCase):
         self.assertEqual(sec_skill.status, "ready")
 
     def test_scenario_5_user_opt_out_mode(self):
-        """Scenario 5: User preference set to 'opt_out' -> Tier 2 tools are completely excluded."""
+        """Scenario 5: User preference set to 'opt_out' -> Tier >= 3 tools are completely excluded."""
         prefs = PreferencesManager(config_dir=Path(self.test_dir) / "prefs")
         prefs.set_gcp_mode("opt_out")
 
@@ -155,17 +168,13 @@ class TestARDResolverAuthScenarios(unittest.TestCase):
             prefs_manager=prefs,
         )
 
-        # Search for something that would match BigQuery and BigQuery Skill
         results = resolver.search("bigquery analytical sql query")
         identifiers = [r.identifier for r in results]
 
-        # Tier 0 BigQuery Guidelines Skill should appear
         self.assertTrue(any("skills:bigquery-guidelines" in i for i in identifiers))
-        # Tier 2 BigQuery MCP Server MUST NOT appear
         self.assertFalse(any("mcp:bigquery" in i for i in identifiers))
-        # All returned items must have tier < 2
         for r in results:
-            self.assertLess(r.tier, 2)
+            self.assertLess(r.tier, 3)
 
     def test_scenario_6_fallback_skills_and_api_keys(self):
         """Scenario 6: Verify API key detection (Gemini) and fallback skill links."""
@@ -186,18 +195,20 @@ class TestARDResolverAuthScenarios(unittest.TestCase):
         self.assertTrue(gemini_res.auth_ready)
         self.assertEqual(gemini_res.status, "ready")
 
-    def test_scenario_7_persistent_preferences(self):
-        """Scenario 7: Preferences are safely persisted and retrieved."""
-        prefs_dir = Path(self.test_dir) / "prefs"
-        prefs = PreferencesManager(config_dir=prefs_dir)
-        self.assertEqual(prefs.get_gcp_mode(), "auto")
-
-        prefs.record_service_decision("urn:air:google.com:mcp:bigquery", "allowed")
-        self.assertEqual(prefs.get_service_decision("urn:air:google.com:mcp:bigquery"), "allowed")
-
-        # Reload from disk
-        prefs_reloaded = PreferencesManager(config_dir=prefs_dir)
-        self.assertEqual(prefs_reloaded.get_service_decision("urn:air:google.com:mcp:bigquery"), "allowed")
+    def test_scenario_7_multi_runtime_preferences(self):
+        """Scenario 7: Preferences work in ADK / ephemeral runtimes via env vars & memory."""
+        # Test in-memory / ADK env string injection
+        adk_env = {
+            "ARD_PREFERENCES_JSON": json.dumps({
+                "gcp_mode": "opt_out",
+                "service_decisions": {"urn:ai:google.com:mcp:bigquery": "declined"}
+            })
+        }
+        prefs_adk = PreferencesManager(env=adk_env)
+        self.assertEqual(prefs_adk.get_gcp_mode(), "opt_out")
+        self.assertEqual(
+            prefs_adk.get_service_decision("urn:ai:google.com:mcp:bigquery"), "declined"
+        )
 
 
 if __name__ == "__main__":

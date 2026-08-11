@@ -2,12 +2,13 @@
 """
 ARD (Agent Resource Discovery) Google Ecosystem Resolver & Auth Manager
 
-This standalone, zero-dependency engine handles:
-1. ARD v0.5 catalog search and natural language matching.
-2. Progressive Auth Tier resolution (Tier 0: No Auth, Tier 1: API Key, Tier 2: GCP Account/ADC).
-3. System Auth Environment Inspection (Service Accounts, User ADC, gcloud CLI status).
-4. Persistent User Preferences (e.g. Opt-Out of GCP tools, remember onboarding choices forever).
-5. Non-intrusive progressive onboarding recommendations and fallback skills.
+Provides:
+1. Canonical ARD v0.5 search & natural language capability matching.
+2. Canonical domain-anchored URNs (urn:ai:google.com:...).
+3. Progressive 5-Tier Auth Resolution (Tier 0: No Auth -> Tier 1: API Keys -> Tier 2: OAuth -> Tier 3: GCP ADC -> Tier 4: Enterprise).
+4. Passive Auth Inspection (Service Accounts, User ADC, gcloud CLI status, API keys).
+5. Multi-Runtime Preferences Management (Supports CLI workstation files, ADK state, and ephemeral env variables).
+6. Non-intrusive progressive onboarding recommendations and fallback skills.
 """
 
 from __future__ import annotations
@@ -15,7 +16,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -26,8 +26,6 @@ from urllib.request import Request, urlopen
 
 
 DEFAULT_CATALOG_PATH = Path(__file__).resolve().parent.parent / "ai-catalog.json"
-DEFAULT_CONFIG_DIR = Path.home() / ".config" / "ard"
-PREFERENCES_FILE = "preferences.json"
 
 
 @dataclass
@@ -47,7 +45,7 @@ class AuthStatus:
 
 
 class AuthInspector:
-    """Inspects system authentication state without modifying environment."""
+    """Inspects system authentication state without mutating the environment."""
 
     def __init__(
         self,
@@ -79,7 +77,7 @@ class AuthInspector:
                 pass
 
         # 2. Check Standard User ADC Location
-        if self.custom_adc_path:
+        if self.custom_adc_path is not None:
             adc_path = self.custom_adc_path
         else:
             if sys.platform == "win32":
@@ -94,7 +92,7 @@ class AuthInspector:
             try:
                 with open(adc_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    if isinstance(data, dict) and "client_id" in data:
+                    if isinstance(data, dict) and ("client_id" in data or "refresh_token" in data):
                         status.user_adc_active = True
                         status.user_adc_path = str(adc_path)
             except Exception:
@@ -119,7 +117,6 @@ class AuthInspector:
             status.summary = "user_adc"
         elif status.gcloud_installed:
             if not fast:
-                # Optionally run dry-run token check if deep inspection requested
                 try:
                     res = subprocess.run(
                         [gcloud_bin, "auth", "application-default", "print-access-token"],
@@ -144,23 +141,53 @@ class AuthInspector:
         status.api_keys = {
             "GEMINI_API_KEY": bool(self.env.get("GEMINI_API_KEY")),
             "GOOGLE_API_KEY": bool(self.env.get("GOOGLE_API_KEY")),
+            "GOOGLE_MAPS_API_KEY": bool(self.env.get("GOOGLE_MAPS_API_KEY")),
         }
 
         return status
 
 
 class PreferencesManager:
-    """Manages persistent user preferences (e.g. GCP opt-out, tool permissions)."""
+    """Manages persistent user preferences across diverse agent runtime targets."""
 
-    def __init__(self, config_dir: Optional[Path] = None):
-        self.config_dir = config_dir or DEFAULT_CONFIG_DIR
-        self.prefs_file = self.config_dir / PREFERENCES_FILE
-        self._ensure_config_dir()
+    def __init__(
+        self,
+        config_dir: Optional[Path] = None,
+        env: Optional[Dict[str, str]] = None,
+        in_memory_override: Optional[Dict[str, Any]] = None,
+    ):
+        self.env = env if env is not None else os.environ
+        self.in_memory_data = in_memory_override
 
-    def _ensure_config_dir(self) -> None:
-        self.config_dir.mkdir(parents=True, exist_ok=True)
+        if config_dir is not None:
+            self.config_dir = config_dir
+        else:
+            custom_dir = self.env.get("ARD_CONFIG_DIR")
+            if custom_dir:
+                self.config_dir = Path(custom_dir)
+            else:
+                if sys.platform == "win32":
+                    appdata = self.env.get("APPDATA", "")
+                    self.config_dir = Path(appdata) / "ard" if appdata else Path.home() / ".config" / "ard"
+                else:
+                    config_home = self.env.get("XDG_CONFIG_HOME")
+                    base = Path(config_home) if config_home else Path.home() / ".config"
+                    self.config_dir = base / "ard"
+
+        self.prefs_file = self.config_dir / "preferences.json"
 
     def load(self) -> Dict[str, Any]:
+        if self.in_memory_data is not None:
+            return self.in_memory_data
+
+        # Check in-memory JSON from environment variable (useful in stateless ADK/Cloud Run runtimes)
+        env_prefs = self.env.get("ARD_PREFERENCES_JSON")
+        if env_prefs:
+            try:
+                return json.loads(env_prefs)
+            except Exception:
+                pass
+
         if not self.prefs_file.is_file():
             return {
                 "gcp_mode": "auto",  # 'auto', 'always_allow', 'opt_out'
@@ -178,9 +205,17 @@ class PreferencesManager:
             }
 
     def save(self, data: Dict[str, Any]) -> None:
-        self._ensure_config_dir()
-        with open(self.prefs_file, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
+        if self.in_memory_data is not None:
+            self.in_memory_data = data
+            return
+
+        try:
+            self.config_dir.mkdir(parents=True, exist_ok=True)
+            with open(self.prefs_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+        except (OSError, PermissionError):
+            # In read-only filesystems (e.g. strict sandbox container), retain in-memory
+            self.in_memory_data = data
 
     def get_gcp_mode(self) -> str:
         return self.load().get("gcp_mode", "auto")
@@ -226,7 +261,12 @@ class ResolvedResource:
 
 
 class ARDCatalogResolver:
-    """Loads ARD v0.5 catalog, performs query matching, applies auth & user preferences."""
+    """Loads ARD v0.5 catalog, performs query matching, and applies auth & user preferences."""
+
+    STOP_WORDS = {
+        "how", "to", "for", "a", "an", "the", "in", "and", "of", "with", "is", "on", "by",
+        "at", "from", "do", "i", "can", "my", "me", "this", "that", "it", "what", "run"
+    }
 
     def __init__(
         self,
@@ -252,16 +292,10 @@ class ARDCatalogResolver:
                 self._catalog_data = json.load(f)
         return self._catalog_data
 
-    STOP_WORDS = {
-        "how", "to", "for", "a", "an", "the", "in", "and", "of", "with", "is", "on", "by",
-        "at", "from", "do", "i", "can", "my", "me", "this", "that", "it", "what"
-    }
-
     def _score_entry(self, entry: Dict[str, Any], query_terms: List[str]) -> int:
         if not query_terms:
             return 50
 
-        # Filter out stop words if there are specific content terms
         meaningful_terms = [t for t in query_terms if t not in self.STOP_WORDS]
         active_terms = meaningful_terms if meaningful_terms else query_terms
 
@@ -274,7 +308,6 @@ class ARDCatalogResolver:
         score = 0
         matched_terms = set()
 
-        # Check exact query match in representative queries
         full_query = " ".join(query_terms).lower()
         if any(full_query in rq for rq in rep_queries):
             score += 45
@@ -282,19 +315,19 @@ class ARDCatalogResolver:
         for term in active_terms:
             term_matched = False
             if term in display_name:
-                score += 25
+                score += 30
                 term_matched = True
             if any(term in tag for tag in tags):
-                score += 20
+                score += 25
                 term_matched = True
             if any(term in cap for cap in capabilities):
-                score += 20
+                score += 25
                 term_matched = True
             if any(term in rq for rq in rep_queries):
-                score += 15
+                score += 20
                 term_matched = True
             if term in description:
-                score += 10
+                score += 15
                 term_matched = True
 
             if term_matched:
@@ -303,7 +336,6 @@ class ARDCatalogResolver:
         if not matched_terms:
             return 0
 
-        # Add coverage multiplier
         coverage = len(matched_terms) / len(active_terms)
         score = int(score * coverage)
 
@@ -331,8 +363,8 @@ class ARDCatalogResolver:
             auth_type = auth_meta.get("type", "none")
             auth_required = auth_meta.get("required", False)
 
-            # Filter out Tier 2 if user has opted out of GCP services
-            if gcp_mode == "opt_out" and tier >= 2:
+            # Filter out Tier >= 3 (GCP managed services) if user opted out
+            if gcp_mode == "opt_out" and tier >= 3:
                 continue
 
             # Apply explicit tier filter if requested
@@ -343,7 +375,7 @@ class ARDCatalogResolver:
             if score == 0:
                 continue
 
-            # Determine Auth Readiness and Action Suggestions
+            # Evaluate Auth Tier Readiness
             auth_ready = False
             status = "ready"
             action_suggestion = None
@@ -372,6 +404,12 @@ class ARDCatalogResolver:
                     }
                     action_suggestion = f"Set {', '.join(env_vars)} or design offline."
             elif tier == 2:
+                # User Workspace OAuth
+                auth_ready = False
+                status = "needs_oauth"
+                action_suggestion = "Requires user OAuth consent."
+            elif tier in {3, 4}:
+                # Google Cloud ADC / Service Account / Enterprise
                 if auth_status.gcp_authenticated:
                     auth_ready = True
                     status = "ready"
@@ -387,7 +425,7 @@ class ARDCatalogResolver:
                         "freeTier": auth_meta.get("freeTier", False),
                         "freeTierDetails": auth_meta.get("freeTierDetails", ""),
                         "message": (
-                            f"Requires GCP credentials. Run `{cmd}` or sign up for free tier."
+                            f"Requires GCP credentials. Run `{cmd}` or activate free tier."
                         ),
                     }
                     action_suggestion = (
@@ -395,10 +433,8 @@ class ARDCatalogResolver:
                         + (f"Fallback: `{fallback_skill}`." if fallback_skill else "")
                     )
 
-            # Adjust score ranking based on user readiness
             final_score = score
             if not auth_ready and gcp_mode == "auto":
-                # Slightly de-prioritize unauthenticated cloud tools below ready local skills
                 final_score = max(10, score - 15)
 
             results.append(
@@ -438,7 +474,7 @@ def build_cli() -> argparse.ArgumentParser:
     search_p.add_argument("query", help="Natural language query")
     search_p.add_argument("--catalog", help="Path or URL to ai-catalog.json")
     search_p.add_argument("--limit", type=int, default=10, help="Max results")
-    search_p.add_argument("--tier", type=int, choices=[0, 1, 2], help="Filter by Auth Tier")
+    search_p.add_argument("--tier", type=int, choices=[0, 1, 2, 3, 4], help="Filter by Auth Tier")
     search_p.add_argument("--opt-out", action="store_true", help="Filter out all GCP tools")
     search_p.add_argument("--json", action="store_true", help="Output raw JSON")
 
@@ -542,7 +578,7 @@ def main() -> None:
             print(f"✅ Set GCP mode to: {args.mode}")
         elif args.prefs_action == "opt-out":
             prefs.set_gcp_mode("opt_out")
-            print("🚫 Opted out of all GCP account recommendations. Tier 2 items will never be shown.")
+            print("🚫 Opted out of all GCP account recommendations. Cloud tools will not be shown.")
         elif args.prefs_action == "opt-in":
             prefs.set_gcp_mode("auto")
             print("✅ Reset GCP discovery mode to 'auto'.")
