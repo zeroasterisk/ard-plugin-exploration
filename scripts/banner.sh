@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# Helper script to display clean scenario headers instantly
+# Reset scenario environment and render clean header
 clear
+rm -f /tmp/opencode_session_active
+rm -rf .config/ard
+
 SCENARIO="${1:-0}"
 
 case "$SCENARIO" in

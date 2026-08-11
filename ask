@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Shortcut helper to interact naturally with OpenCode agent in Podman
+set -e
+
+PROMPT="$*"
+if [ -z "$PROMPT" ]; then
+  echo "Usage: ./ask \"your question or response\""
+  exit 1
+fi
+
+SESSION_FLAG=""
+if [ -f "/tmp/opencode_session_active" ]; then
+  SESSION_FLAG="--continue"
+else
+  touch "/tmp/opencode_session_active"
+fi
+
+podman run --rm \
+  -v "$(pwd):/workspace/ard-plugin-exploration" \
+  -e XDG_CONFIG_HOME="/workspace/.config" \
+  -e ARD_CONFIG_DIR="/workspace/.config/ard" \
+  --entrypoint /bin/sh \
+  localhost/ard-opencode:latest \
+  -c "cd /workspace/ard-plugin-exploration && opencode run --model opencode/deepseek-v4-flash-free $SESSION_FLAG \"$PROMPT\""

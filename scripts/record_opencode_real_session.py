@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """
-Real OpenCode AI Agent PTY Session Recorder (3 Core Scenarios)
+Real OpenCode AI Agent PTY Session Recorder (Natural Developer Interaction)
 
-Executes the actual OpenCode binary (opencode run) in the container, driving real
-LLM tool calls through the ARD MCP server for the 3 focused scenarios:
-- Scenario 1: Tier 0 Pure Public Discovery (Zero-Auth Counterpoint)
-- Scenario 2: Cloud Intent -> User: "No with an opt out" -> OpenCode calls ard_set_preference(mode="opt_out") & silences GCP
-- Scenario 3: Cloud Intent -> User: "Yes" -> OpenCode facilitates easy onboarding & unlocks BigQuery
-- Automated E2E Test Suite (4/4 passing)
+Drives the actual OpenCode binary via the ./ask shortcut:
+- `./scripts/banner.sh <N>` resets the scenario state and clears the screen.
+- The developer types natural prompts with `./ask "..."`.
+- OpenCode receives the prompt, calls ARD MCP tools autonomously, and replies.
 """
 
 import fcntl
@@ -56,12 +54,12 @@ class OpenCodePTYRecorder:
             except (OSError, ValueError):
                 break
 
-    def type_string(self, text: str, char_delay: float = 0.045) -> None:
+    def type_string(self, text: str, char_delay: float = 0.04) -> None:
         for char in text:
             os.write(self.master_fd, char.encode("utf-8"))
             time.sleep(char_delay)
 
-    def send_command(self, cmd: str, wait_after: float = 3.0, char_delay: float = 0.045) -> None:
+    def send_command(self, cmd: str, wait_after: float = 3.0, char_delay: float = 0.04) -> None:
         time.sleep(0.6)
         self.type_string(cmd, char_delay=char_delay)
         time.sleep(0.4)
@@ -132,60 +130,49 @@ class OpenCodePTYRecorder:
 
 def record_opencode_session():
     rec = OpenCodePTYRecorder(cols=112, rows=34)
-    print("🎬 Starting Real OpenCode AI Agent PTY Recorder (3 Core Scenarios)...")
+    print("🎬 Starting Real OpenCode AI Agent PTY Recorder (3 Core Scenarios via ./ask)...")
     rec.start()
 
     try:
         # Title Banner
         rec.send_command("./scripts/banner.sh 0", wait_after=3.5, char_delay=0.03)
 
-        # Verify OpenCode MCP Connection
-        rec.send_command(
-            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c 'cd /workspace/ard-plugin-exploration && opencode mcp list'",
-            wait_after=6.0,
-            char_delay=0.035,
-        )
-
         # ---------------------------------------------------------------------
         # Scenario 1: Tier 0 Pure Public Discovery (Zero Auth Counterpoint)
         # ---------------------------------------------------------------------
         rec.send_command("./scripts/banner.sh 1", wait_after=3.0, char_delay=0.03)
         rec.send_command(
-            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && opencode run --model opencode/deepseek-v4-flash-free 'I need best practices to optimize my SQL queries and design zero-trust security. Search tools for me.'\"",
+            './ask "I need best practices to optimize my SQL queries and design zero-trust security. Search tools for me."',
             wait_after=14.0,
             char_delay=0.035,
         )
 
         # ---------------------------------------------------------------------
-        # Scenario 2: Unauthenticated Cloud Intent -> User Opts Out ("No with an opt out")
+        # Scenario 2: Cloud Intent -> User Opts Out ("No with an opt out")
         # ---------------------------------------------------------------------
         rec.send_command("./scripts/banner.sh 2", wait_after=3.0, char_delay=0.03)
-        # Turn 1: User asks for BigQuery
         rec.send_command(
-            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && rm -rf /workspace/.config/ard && opencode run --model opencode/deepseek-v4-flash-free 'I want to run a live analytical query on a 100GB sales dataset in BigQuery. What tool can do this?'\"",
+            './ask "I want to run a live analytical query on a 100GB sales dataset in BigQuery. What tool can do this?"',
             wait_after=14.0,
             char_delay=0.035,
         )
-        # Turn 2: User responds "No with an opt out"
         rec.send_command(
-            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && opencode run --model opencode/deepseek-v4-flash-free --continue 'No with an opt out'\"",
+            './ask "No with an opt out"',
             wait_after=14.0,
             char_delay=0.035,
         )
 
         # ---------------------------------------------------------------------
-        # Scenario 3: Unauthenticated Cloud Intent -> User Onboards ("Yes")
+        # Scenario 3: Cloud Intent -> User Onboards ("Yes")
         # ---------------------------------------------------------------------
         rec.send_command("./scripts/banner.sh 3", wait_after=3.0, char_delay=0.03)
-        # Turn 1: User asks for BigQuery
         rec.send_command(
-            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && rm -rf /workspace/.config/ard && opencode run --model opencode/deepseek-v4-flash-free 'I want to query a public BigQuery dataset. What tool can do this?'\"",
+            './ask "I want to query a public BigQuery dataset. What tool can do this?"',
             wait_after=14.0,
             char_delay=0.035,
         )
-        # Turn 2: User responds "Yes, please log me in"
         rec.send_command(
-            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && opencode run --model opencode/deepseek-v4-flash-free --continue 'Yes, please log me in'\"",
+            './ask "Yes, please log me in"',
             wait_after=14.0,
             char_delay=0.035,
         )
