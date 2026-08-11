@@ -1,0 +1,484 @@
+{
+  "$comment": "CANONICAL DEPLOYMENT TARGET: This manifest is authored to be hosted at https://cloud.google.com/.well-known/ai-catalog.json and https://developers.google.com/.well-known/ai-catalog.json. Local copies serve as development and offline discovery fixtures.",
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Google Cloud & Developer Agent Ecosystem",
+    "identifier": "did:web:cloud.google.com",
+    "documentationUrl": "https://docs.cloud.google.com/mcp"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:google.com:skills:well-architected-security",
+      "displayName": "Google Cloud Well-Architected Security Skill",
+      "type": "application/ai-skill",
+      "description": "Zero-trust architecture patterns, IAM privilege minimization, network security perimeters, and data encryption practices.",
+      "tags": ["skill", "security", "iam", "architecture", "auth:none", "tier:0"],
+      "capabilities": [
+        "security-architecture-review",
+        "iam-least-privilege-audit",
+        "network-perimeter-design",
+        "encryption-policy-validation"
+      ],
+      "representativeQueries": [
+        "how to design secure cloud architecture",
+        "iam principle of least privilege recommendations",
+        "best practices for cloud security perimeter",
+        "zero trust architecture checklist"
+      ],
+      "url": "https://raw.githubusercontent.com/google/skills/main/skills/security/SKILL.md",
+      "metadata": {
+        "sourceRepo": "https://github.com/google/skills",
+        "auth": {
+          "tier": 0,
+          "type": "none",
+          "required": false,
+          "freeTier": true,
+          "description": "Zero auth required. Standalone architectural playbook usable locally in any IDE or agent."
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:skills:well-architected-reliability",
+      "displayName": "Google Cloud Well-Architected Reliability Skill",
+      "type": "application/ai-skill",
+      "description": "High availability, disaster recovery, circuit breakers, multi-region failover, and SLO/SRE best practices.",
+      "tags": ["skill", "reliability", "sre", "disaster-recovery", "architecture", "auth:none", "tier:0"],
+      "capabilities": [
+        "disaster-recovery-planning",
+        "circuit-breaker-patterns",
+        "multi-region-failover-design",
+        "slo-sli-budget-definition"
+      ],
+      "representativeQueries": [
+        "design high availability multi region architecture",
+        "circuit breaker pattern implementation",
+        "how to calculate slo and error budgets",
+        "disaster recovery rto rpo strategy"
+      ],
+      "url": "https://raw.githubusercontent.com/google/skills/main/skills/reliability/SKILL.md",
+      "metadata": {
+        "sourceRepo": "https://github.com/google/skills",
+        "auth": {
+          "tier": 0,
+          "type": "none",
+          "required": false,
+          "freeTier": true,
+          "description": "Zero auth required. System design reference."
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:skills:well-architected-cost-optimization",
+      "displayName": "Google Cloud Well-Architected Cost Optimization Skill",
+      "type": "application/ai-skill",
+      "description": "FinOps best practices, compute autoscaling, storage lifecycle tiering, and cloud resource cost reduction strategies.",
+      "tags": ["skill", "finops", "cost-optimization", "billing", "architecture", "auth:none", "tier:0"],
+      "capabilities": [
+        "finops-budget-analysis",
+        "storage-lifecycle-tiering",
+        "compute-idle-resource-detection",
+        "bigquery-slot-and-query-pricing-optimization"
+      ],
+      "representativeQueries": [
+        "reduce cloud infrastructure bill",
+        "storage lifecycle policy cost savings",
+        "optimize bigquery query cost",
+        "finops cloud spending checklist"
+      ],
+      "url": "https://raw.githubusercontent.com/google/skills/main/skills/cost-optimization/SKILL.md",
+      "metadata": {
+        "sourceRepo": "https://github.com/google/skills",
+        "auth": {
+          "tier": 0,
+          "type": "none",
+          "required": false,
+          "freeTier": true,
+          "description": "Zero auth required. FinOps and pricing model playbook."
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:skills:bigquery-guidelines",
+      "displayName": "BigQuery SQL & Performance Guidelines Skill",
+      "type": "application/ai-skill",
+      "description": "SQL optimization, partitioning/clustering strategies, window functions, and schema design for analytical queries.",
+      "tags": ["skill", "bigquery", "sql", "analytics", "performance", "auth:none", "tier:0"],
+      "capabilities": [
+        "sql-query-optimization",
+        "partitioning-and-clustering-design",
+        "analytical-schema-design",
+        "window-function-recipes"
+      ],
+      "representativeQueries": [
+        "optimize bigquery sql query",
+        "how to partition and cluster tables",
+        "best practices for analytical schemas",
+        "avoid full table scans in bigquery"
+      ],
+      "url": "https://raw.githubusercontent.com/google/skills/main/skills/bigquery/SKILL.md",
+      "metadata": {
+        "sourceRepo": "https://github.com/google/skills",
+        "auth": {
+          "tier": 0,
+          "type": "none",
+          "required": false,
+          "freeTier": true,
+          "description": "Zero auth required. Learn and write optimal BigQuery SQL offline or in local editors."
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:skills:cloud-run-architecture",
+      "displayName": "Cloud Run Serverless Architecture Skill",
+      "type": "application/ai-skill",
+      "description": "Containerized microservice architecture, sidecar patterns, cold-start optimization, and event-driven architectures.",
+      "tags": ["skill", "cloud-run", "containers", "docker", "serverless", "auth:none", "tier:0"],
+      "capabilities": [
+        "dockerfile-serverless-optimization",
+        "sidecar-container-configuration",
+        "cold-start-latency-reduction",
+        "eventarc-event-driven-wiring"
+      ],
+      "representativeQueries": [
+        "optimize dockerfile for cloud run",
+        "serverless microservice design",
+        "reduce container cold start latency",
+        "cloud run sidecar pattern setup"
+      ],
+      "url": "https://raw.githubusercontent.com/google/skills/main/skills/cloud-run/SKILL.md",
+      "metadata": {
+        "sourceRepo": "https://github.com/google/skills",
+        "auth": {
+          "tier": 0,
+          "type": "none",
+          "required": false,
+          "freeTier": true,
+          "description": "Zero auth required. Guides container design and deployment descriptors."
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:skills:gcp-auth-recipes",
+      "displayName": "Google Cloud Authentication & ADC Playbook",
+      "type": "application/ai-skill",
+      "description": "Comprehensive runbook for Application Default Credentials (ADC), Workload Identity Federation, Service Account keys, and OAuth2.",
+      "tags": ["skill", "auth", "adc", "iam", "workload-identity", "auth:none", "tier:0"],
+      "capabilities": [
+        "adc-troubleshooting",
+        "workload-identity-federation-setup",
+        "service-account-impersonation",
+        "oauth2-token-exchange"
+      ],
+      "representativeQueries": [
+        "how to set up application default credentials",
+        "troubleshoot gcloud auth login",
+        "configure workload identity federation for github actions",
+        "service account key best practices"
+      ],
+      "url": "https://raw.githubusercontent.com/google/skills/main/skills/auth/SKILL.md",
+      "metadata": {
+        "sourceRepo": "https://github.com/google/skills",
+        "auth": {
+          "tier": 0,
+          "type": "none",
+          "required": false,
+          "freeTier": true,
+          "description": "Zero auth required. Auth playbook that teaches users and agents how to onboard and authenticate."
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:skills:gemini-api-patterns",
+      "displayName": "Gemini API Structured Outputs & Tool Calling Skill",
+      "type": "application/ai-skill",
+      "description": "Patterns for multimodal reasoning, JSON schema constrained decoding, function calling, and system prompt engineering.",
+      "tags": ["skill", "gemini", "ai", "function-calling", "structured-outputs", "auth:api-key", "tier:1"],
+      "capabilities": [
+        "function-declaration-schema-design",
+        "pydantic-structured-output-generation",
+        "multimodal-audio-video-prompting",
+        "context-caching-setup"
+      ],
+      "representativeQueries": [
+        "gemini function calling python code",
+        "enforce json schema output with gemini",
+        "prompt engineering for gemini 2.0",
+        "how to use context caching"
+      ],
+      "url": "https://raw.githubusercontent.com/google/skills/main/skills/gemini-api/SKILL.md",
+      "metadata": {
+        "sourceRepo": "https://github.com/google/skills",
+        "auth": {
+          "tier": 1,
+          "type": "api_key",
+          "required": false,
+          "freeTier": true,
+          "envVars": ["GEMINI_API_KEY"],
+          "onboardingUrl": "https://aistudio.google.com/app/apikey",
+          "description": "Code design is Tier 0. Live execution requires a free Gemini API key from AI Studio."
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:mcp:developer-knowledge",
+      "displayName": "Google Developer Knowledge MCP Server",
+      "type": "application/mcp-server-card+json",
+      "description": "Direct documentation search, API reference lookups, code samples, and troubleshooting across Google Cloud & developer documentation.",
+      "tags": ["mcp", "documentation", "docs", "developer", "search", "auth:none", "tier:1"],
+      "capabilities": [
+        "documentation-search",
+        "api-reference-lookup",
+        "code-sample-retrieval",
+        "error-code-troubleshooting"
+      ],
+      "representativeQueries": [
+        "lookup google cloud storage python api docs",
+        "find code sample for bigquery streaming insert",
+        "explain gcp error code 403 PERMISSION_DENIED",
+        "search cloud run v2 api parameters"
+      ],
+      "url": "https://developer-knowledge.mcp.google.com/server.json",
+      "metadata": {
+        "sourceUrl": "https://docs.cloud.google.com/mcp/supported-products",
+        "auth": {
+          "tier": 1,
+          "type": "none",
+          "required": false,
+          "freeTier": true,
+          "description": "Public documentation search endpoint. No GCP project required."
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:mcp:bigquery",
+      "displayName": "Google BigQuery Managed MCP Server",
+      "type": "application/mcp-server-card+json",
+      "description": "Execute SQL queries, inspect table schemas, explore public datasets, and analyze analytical data directly through BigQuery.",
+      "tags": ["mcp", "database", "analytics", "sql", "bigquery", "data-warehouse", "auth:gcp-account", "tier:2"],
+      "capabilities": [
+        "sql-query-execution",
+        "dataset-table-schema-inspection",
+        "public-dataset-exploration",
+        "query-dry-run-and-cost-estimation"
+      ],
+      "representativeQueries": [
+        "query bigquery dataset",
+        "inspect bigquery table columns",
+        "search public datasets in bigquery",
+        "run sql analytical aggregation"
+      ],
+      "url": "https://bigquery.mcp.google.com/server.json",
+      "metadata": {
+        "sourceUrl": "https://docs.cloud.google.com/mcp/supported-products",
+        "auth": {
+          "tier": 2,
+          "type": "gcp_adc",
+          "required": true,
+          "freeTier": true,
+          "freeTierDetails": "1TB of free query processing and 10GB of free storage per month.",
+          "checkCommand": "gcloud auth application-default print-access-token",
+          "onboardingCommand": "gcloud auth application-default login",
+          "onboardingUrl": "https://console.cloud.google.com/bigquery",
+          "fallbackSkill": "urn:air:google.com:skills:bigquery-guidelines"
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:mcp:cloud-storage",
+      "displayName": "Google Cloud Storage (GCS) Managed MCP Server",
+      "type": "application/mcp-server-card+json",
+      "description": "Inspect buckets, list objects, upload and download files, manage storage permissions, and explore object metadata.",
+      "tags": ["mcp", "storage", "gcs", "blobs", "files", "bucket", "auth:gcp-account", "tier:2"],
+      "capabilities": [
+        "bucket-list-and-inspect",
+        "object-upload-download",
+        "storage-lifecycle-inspection",
+        "signed-url-generation"
+      ],
+      "representativeQueries": [
+        "list files in gcs bucket",
+        "download object from cloud storage",
+        "upload artifact to storage bucket",
+        "check cloud storage bucket permissions"
+      ],
+      "url": "https://storage.mcp.google.com/server.json",
+      "metadata": {
+        "sourceUrl": "https://docs.cloud.google.com/mcp/supported-products",
+        "auth": {
+          "tier": 2,
+          "type": "gcp_adc",
+          "required": true,
+          "freeTier": true,
+          "freeTierDetails": "5GB-months of standard storage in US regions.",
+          "checkCommand": "gcloud auth application-default print-access-token",
+          "onboardingCommand": "gcloud auth application-default login",
+          "onboardingUrl": "https://console.cloud.google.com/storage"
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:mcp:cloud-sql",
+      "displayName": "Google Cloud SQL Managed MCP Server",
+      "type": "application/mcp-server-card+json",
+      "description": "Manage, connect to, and query PostgreSQL, MySQL, and SQL Server managed database instances in Google Cloud.",
+      "tags": ["mcp", "database", "sql", "postgres", "mysql", "cloud-sql", "auth:gcp-account", "tier:2"],
+      "capabilities": [
+        "cloud-sql-instance-management",
+        "database-schema-inspection",
+        "query-execution",
+        "backup-and-restore-operations"
+      ],
+      "representativeQueries": [
+        "connect to cloud sql postgres instance",
+        "inspect mysql tables in cloud sql",
+        "restart cloud sql instance",
+        "check database backup status"
+      ],
+      "url": "https://cloudsql.mcp.google.com/server.json",
+      "metadata": {
+        "sourceUrl": "https://docs.cloud.google.com/mcp/supported-products",
+        "auth": {
+          "tier": 2,
+          "type": "gcp_adc",
+          "required": true,
+          "freeTier": false,
+          "checkCommand": "gcloud auth application-default print-access-token",
+          "onboardingCommand": "gcloud auth application-default login",
+          "onboardingUrl": "https://console.cloud.google.com/sql"
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:mcp:cloud-run",
+      "displayName": "Google Cloud Run Managed MCP Server",
+      "type": "application/mcp-server-card+json",
+      "description": "Deploy, inspect, scale, and monitor serverless container services and batch jobs on Cloud Run.",
+      "tags": ["mcp", "compute", "serverless", "cloud-run", "containers", "deploy", "auth:gcp-account", "tier:2"],
+      "capabilities": [
+        "service-deployment",
+        "job-execution",
+        "traffic-splitting-and-revisions",
+        "service-log-and-metric-inspection"
+      ],
+      "representativeQueries": [
+        "deploy container to cloud run",
+        "list cloud run services",
+        "split traffic between revisions",
+        "trigger cloud run batch job"
+      ],
+      "url": "https://run.mcp.google.com/server.json",
+      "metadata": {
+        "sourceUrl": "https://docs.cloud.google.com/mcp/supported-products",
+        "auth": {
+          "tier": 2,
+          "type": "gcp_adc",
+          "required": true,
+          "freeTier": true,
+          "freeTierDetails": "2 million requests, 360,000 GB-seconds of memory free per month.",
+          "checkCommand": "gcloud auth application-default print-access-token",
+          "onboardingCommand": "gcloud auth application-default login",
+          "onboardingUrl": "https://console.cloud.google.com/run",
+          "fallbackSkill": "urn:air:google.com:skills:cloud-run-architecture"
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:mcp:gke",
+      "displayName": "Google Kubernetes Engine (GKE) Managed MCP Server",
+      "type": "application/mcp-server-card+json",
+      "description": "Manage Kubernetes clusters, inspect pods and workloads, configure nodepools, and monitor cluster health.",
+      "tags": ["mcp", "kubernetes", "k8s", "gke", "containers", "orchestration", "auth:gcp-account", "tier:2"],
+      "capabilities": [
+        "cluster-lifecycle-management",
+        "workload-and-pod-troubleshooting",
+        "nodepool-autoscaling-inspection",
+        "helm-and-manifest-application"
+      ],
+      "representativeQueries": [
+        "list gke clusters",
+        "troubleshoot crashing kubernetes pods",
+        "inspect gke cluster node capacity",
+        "get kubeconfig for gke cluster"
+      ],
+      "url": "https://gke.mcp.google.com/server.json",
+      "metadata": {
+        "sourceUrl": "https://docs.cloud.google.com/mcp/supported-products",
+        "auth": {
+          "tier": 2,
+          "type": "gcp_adc",
+          "required": true,
+          "freeTier": true,
+          "freeTierDetails": "$74.40 monthly cluster management fee credit covering one zonal or Autopilot cluster.",
+          "checkCommand": "gcloud auth application-default print-access-token",
+          "onboardingCommand": "gcloud auth application-default login",
+          "onboardingUrl": "https://console.cloud.google.com/kubernetes"
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:mcp:secops",
+      "displayName": "Google Security Operations (SecOps) MCP Server",
+      "type": "application/mcp-server-card+json",
+      "description": "Investigate security alerts, search Chronicle UDM events, run threat intelligence queries, and orchestrate incident response.",
+      "tags": ["mcp", "security", "secops", "chronicle", "siem", "soar", "threat-intel", "auth:gcp-account", "tier:2"],
+      "capabilities": [
+        "udm-event-search",
+        "security-alert-triage",
+        "threat-intelligence-lookup",
+        "incident-rule-evaluation"
+      ],
+      "representativeQueries": [
+        "investigate suspicious ip address in secops",
+        "query chronicle security logs",
+        "triage high severity alerts",
+        "check virus total and threat intel feeds"
+      ],
+      "url": "https://secops.mcp.google.com/server.json",
+      "metadata": {
+        "sourceUrl": "https://docs.cloud.google.com/mcp/supported-products",
+        "auth": {
+          "tier": 2,
+          "type": "gcp_adc",
+          "required": true,
+          "freeTier": false,
+          "checkCommand": "gcloud auth application-default print-access-token",
+          "onboardingCommand": "gcloud auth application-default login",
+          "onboardingUrl": "https://chronicle.security.google.com",
+          "fallbackSkill": "urn:air:google.com:skills:well-architected-security"
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:google.com:mcp:gcloud",
+      "displayName": "Google Cloud Resource Manager (gcloud) MCP Server",
+      "type": "application/mcp-server-card+json",
+      "description": "Manage GCP projects, enable APIs, query billing accounts, and orchestrate Cloud IAM policies.",
+      "tags": ["mcp", "management", "projects", "billing", "iam", "gcloud", "auth:gcp-account", "tier:2"],
+      "capabilities": [
+        "project-creation-and-list",
+        "service-api-enablement",
+        "iam-policy-binding",
+        "billing-account-association"
+      ],
+      "representativeQueries": [
+        "list my gcp projects",
+        "enable bigquery api in project",
+        "check gcp billing account status",
+        "grant iam role to user"
+      ],
+      "url": "https://resourcemanager.mcp.google.com/server.json",
+      "metadata": {
+        "sourceUrl": "https://docs.cloud.google.com/mcp/supported-products",
+        "auth": {
+          "tier": 2,
+          "type": "gcp_adc",
+          "required": true,
+          "freeTier": true,
+          "checkCommand": "gcloud auth application-default print-access-token",
+          "onboardingCommand": "gcloud auth application-default login",
+          "onboardingUrl": "https://console.cloud.google.com"
+        }
+      }
+    }
+  ]
+}
