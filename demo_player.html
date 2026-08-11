@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARD Google Ecosystem & OpenCode - 4-Minute Demo</title>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/asciinema-player@3.8.2/dist/bundle/asciinema-player.css" />
+  <style>
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .header {
+      max-width: 960px;
+      width: 100%;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.75rem;
+      margin: 0 0 8px 0;
+      color: #38bdf8;
+    }
+    p {
+      color: #94a3b8;
+      margin: 0;
+      font-size: 1rem;
+    }
+    .player-container {
+      max-width: 960px;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      border: 1px solid #334155;
+      background: #000;
+    }
+    .timeline {
+      max-width: 960px;
+      width: 100%;
+      margin-top: 28px;
+      background: #1e293b;
+      padding: 20px 24px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      box-sizing: border-box;
+    }
+    .timeline h3 {
+      margin: 0 0 14px 0;
+      color: #e2e8f0;
+      font-size: 1.1rem;
+    }
+    .timeline-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 20px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .timeline-item {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+    }
+    .timeline-time {
+      font-weight: 700;
+      color: #38bdf8;
+      font-family: monospace;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Agent Resource Discovery (ARD v0.5) Google Ecosystem</h1>
+    <p>4-Minute Real-World Scenario Walkthrough: Progressive Auth Tiering, Opt-Out, & OpenCode Integration</p>
+  </div>
+
+  <div class="player-container">
+    <div id="player"></div>
+  </div>
+
+  <div class="timeline">
+    <h3>⏱️ Demo Chapters & Timeline</h3>
+    <ul class="timeline-list">
+      <li class="timeline-item"><span class="timeline-time">0:00</span> Introduction & The 5-Tier Auth Model</li>
+      <li class="timeline-item"><span class="timeline-time">0:40</span> Scenario 1: Pure Open Source Dev (Zero Auth / Offline)</li>
+      <li class="timeline-item"><span class="timeline-time">1:20</span> Scenario 2: OpenCode Multi-Turn Flow A (Opt-Out)</li>
+      <li class="timeline-item"><span class="timeline-time">2:00</span> Scenario 3: OpenCode Multi-Turn Flow B (gcloud Onboarding)</li>
+      <li class="timeline-item"><span class="timeline-time">2:40</span> Scenario 4: Authenticated Enterprise (Service Account)</li>
+      <li class="timeline-item"><span class="timeline-time">3:20</span> Containerized Podman E2E Test Suite (6/6 Passing)</li>
+      <li class="timeline-item"><span class="timeline-time">3:45</span> Strategic Takeaways & Catalog Specifications</li>
+    </ul>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/asciinema-player@3.8.2/dist/bundle/asciinema-player.min.js"></script>
+  <script>
+    AsciinemaPlayer.create('./demo.cast', document.getElementById('player'), {
+      autoPlay: true,
+      loop: false,
+      speed: 1.0,
+      theme: 'dracula',
+      fit: 'width'
+    });
+  </script>
+</body>
+</html>
