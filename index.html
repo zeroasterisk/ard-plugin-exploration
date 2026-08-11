@@ -129,29 +129,6 @@
     p { margin: 0 0 12px; font-size: 0.95rem; color: #cbd5e1; }
     p:last-child { margin-bottom: 0; }
 
-    /* Tier Table */
-    .tier-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.88rem;
-      margin-top: 12px;
-    }
-    .tier-table th, .tier-table td {
-      padding: 8px 10px;
-      text-align: left;
-      border-bottom: 1px solid var(--card-border);
-    }
-    .tier-table th {
-      color: var(--text-muted);
-      font-weight: 600;
-      background: rgba(0,0,0,0.2);
-    }
-    .tier-0 { color: var(--success); font-weight: 600; }
-    .tier-1 { color: var(--primary); font-weight: 600; }
-    .tier-2 { color: var(--accent); font-weight: 600; }
-    .tier-3 { color: var(--warning); font-weight: 600; }
-    .tier-4 { color: #f87171; font-weight: 600; }
-
     /* Timeline list */
     .timeline-list {
       list-style: none;
@@ -161,7 +138,7 @@
     .timeline-item {
       display: flex;
       gap: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       font-size: 0.9rem;
     }
     .time-stamp {
@@ -184,10 +161,10 @@
 <body>
   <div class="container">
     <header>
-      <div class="badge">ARD v0.5 Standard • Progressive Discovery</div>
+      <div class="badge">ARD v0.5 Standard • OpenCode Real Agent Demo</div>
       <h1>Google Ecosystem Agent Resource Discovery</h1>
       <p class="subtitle">
-        How publishing a canonical <code>ai-catalog.json</code> provides immediate value to all developers—with progressive auth tiering, zero-friction local skills, and persistent opt-out controls.
+        Real-world AI coding agent (OpenCode) autonomously discovering capabilities, handling progressive auth tiers, respecting opt-out preferences, and guiding easy onboarding.
       </p>
       <div class="links-bar">
         <a href="https://github.com/zeroasterisk/ard-plugin-exploration" class="btn btn-primary" target="_blank">View GitHub Repo</a>
@@ -204,55 +181,39 @@
     <!-- 2-Column Overview Cards -->
     <div class="grid-2">
       <div class="card">
-        <h2>Refuting the Detractor Myth</h2>
-        <p><strong>Detractor Argument:</strong> <em>"Why publish an ARD catalog if it's useless without a GCP account?"</em></p>
-        <p><strong>The Reality:</strong> Capabilities exist on an Auth & Friction spectrum. Over <strong>60% of entries</strong> are Tier 0 (Pure Public Skills & Guidelines) requiring zero accounts, zero credentials, and zero network calls.</p>
-        
-        <table class="tier-table">
-          <thead>
-            <tr><th>Tier</th><th>Type</th><th>Example Resources</th></tr>
-          </thead>
-          <tbody>
-            <tr><td class="tier-0">Tier 0</td><td>Zero Auth / Local</td><td>Security Playbook, BigQuery SQL Guidelines</td></tr>
-            <tr><td class="tier-1">Tier 1</td><td>Developer API Key</td><td>Gemini API Patterns, Developer Knowledge MCP</td></tr>
-            <tr><td class="tier-2">Tier 2</td><td>User OAuth</td><td>Gmail, Google Drive, Google Sheets MCPs</td></tr>
-            <tr><td class="tier-3">Tier 3</td><td>GCP ADC / SA</td><td>BigQuery, Cloud Storage, Cloud Run, GKE</td></tr>
-            <tr><td class="tier-4">Tier 4</td><td>Enterprise VPC-SC</td><td>Google SecOps (Chronicle), SCC</td></tr>
-          </tbody>
-        </table>
+        <h2>🎯 The 3 Core Scenarios</h2>
+        <ul class="timeline-list">
+          <li class="timeline-item">
+            <span class="time-stamp">1</span>
+            <span><strong>Scenario 1 (Tier 0 Pure Discovery):</strong> Zero-auth counterpoint. User asks for security design & SQL tuning ➜ OpenCode recommends Tier 0 skills (no auth, no GCP prompts).</span>
+          </li>
+          <li class="timeline-item">
+            <span class="time-stamp">2</span>
+            <span><strong>Scenario 2 (Opt-Out Flow):</strong> User asks for BigQuery ➜ OpenCode asks <em>"Do you want to login to GCP?"</em> ➜ User replies <em>"No with an opt out"</em> ➜ GCP silenced permanently.</span>
+          </li>
+          <li class="timeline-item">
+            <span class="time-stamp">3</span>
+            <span><strong>Scenario 3 (Assisted Onboarding):</strong> User asks for BigQuery ➜ OpenCode asks <em>"Do you want to login to GCP?"</em> ➜ User replies <em>"Yes"</em> ➜ Easy `gcloud` onboarding & never prompts again.</span>
+          </li>
+        </ul>
       </div>
 
       <div class="card">
-        <h2>⏱️ 4-Minute Demo Chapters</h2>
-        <ul class="timeline-list">
-          <li class="timeline-item"><span class="time-stamp">0:00</span><span><strong>Introduction:</strong> The 5-Tier Auth Model & passive auth inspection</span></li>
-          <li class="timeline-item"><span class="time-stamp">0:40</span><span><strong>Scenario 1:</strong> Pure Open Source Dev (Zero Auth / Offline skills immediately ready)</span></li>
-          <li class="timeline-item"><span class="time-stamp">1:20</span><span><strong>Scenario 2:</strong> OpenCode Multi-Turn Flow A (Respectful Opt-Out; cloud tools silenced)</span></li>
-          <li class="timeline-item"><span class="time-stamp">2:00</span><span><strong>Scenario 3:</strong> OpenCode Multi-Turn Flow B (Assisted gcloud onboarding & live execution)</span></li>
-          <li class="timeline-item"><span class="time-stamp">2:40</span><span><strong>Scenario 4:</strong> Authenticated Enterprise Dev (Service Account auto-detection)</span></li>
-          <li class="timeline-item"><span class="time-stamp">3:20</span><span><strong>Container E2E Suite:</strong> Automated Podman runner (6/6 tests passing)</span></li>
-          <li class="timeline-item"><span class="time-stamp">3:45</span><span><strong>Takeaways:</strong> Canonical endpoints & ARD compliance</span></li>
-        </ul>
+        <h2>🔑 Why This Solves Detractor Concerns</h2>
+        <p>• <strong>Zero Account Prerequisite:</strong> Over 60% of entries in the catalog are standalone Tier 0 skills that provide instant local value without any account or API key.</p>
+        <p>• <strong>Strict User Agency:</strong> When a user opts out, the agent permanently records the preference and never nags about cloud accounts again.</p>
+        <p>• <strong>Pre-Execution Clarity:</strong> Proactive <code>status: needs_onboarding</code> metadata prevents blind 401/403 runtime crashes.</p>
       </div>
     </div>
 
-    <!-- UX Pillars & Ecosystem Compatibility -->
-    <div class="grid-2">
-      <div class="card">
-        <h3>User Experience Pillars</h3>
-        <p>• <strong>Pre-Execution Auth Awareness:</strong> The agent inspects <code>status: needs_onboarding</code> upfront, preventing blind execution crashes and confusing 401/403 errors.</p>
-        <p>• <strong>Strict Opt-Out Control:</strong> Users who say <em>"never ask again"</em> have their preference stored in <code>preferences.json</code> or memory, permanently filtering out managed cloud tools.</p>
-        <p>• <strong>Graceful Offline Fallbacks:</strong> Cloud tools link to offline skills (e.g. BigQuery MCP ➜ BigQuery SQL Guidelines Skill).</p>
-      </div>
-
-      <div class="card">
-        <h3>Ecosystem Compatibility</h3>
-        <p>This catalog complies with the <a href="https://agenticresourcediscovery.org" target="_blank" style="color:var(--primary);">ARD v0.5 Specification</a> using <code>urn:ai:google.com:...</code> identifiers. It works across any ARD-compatible client:</p>
-        <p>• <strong>Our OpenCode / Antigravity MCP Plugin</strong> (<code>src/ard_mcp_server.py</code>)</p>
-        <p>• <strong>Mindpower Agent Finder</strong> (<a href="https://mindpower.github.io/agent-finder/" target="_blank" style="color:var(--primary);">mindpower.github.io/agent-finder</a>)</p>
-        <p>• <strong>HuggingFace Discover</strong> (<code>hf-discover</code>) & EvalState Space</p>
-        <p>• <strong>Any ARD Client</strong> discovering <code>.well-known/ai-catalog.json</code></p>
-      </div>
+    <!-- Ecosystem Compatibility -->
+    <div class="card" style="margin-bottom:32px;">
+      <h3>🌐 Open ARD Standard & Ecosystem Compatibility</h3>
+      <p>This catalog complies with the <a href="https://agenticresourcediscovery.org" target="_blank" style="color:var(--primary);">ARD v0.5 Specification</a> using <code>urn:ai:google.com:...</code> identifiers. It is compatible with all ARD implementations:</p>
+      <p>• <strong>Our OpenCode / Antigravity MCP Plugin</strong> (<code>src/ard_mcp_server.py</code> & <code>opencode.json</code>)</p>
+      <p>• <strong>Mindpower Agent Finder</strong> (<a href="https://mindpower.github.io/agent-finder/" target="_blank" style="color:var(--primary);">mindpower.github.io/agent-finder</a>)</p>
+      <p>• <strong>Hugging Face Discover</strong> (<code>hf-discover</code>) & EvalState Space</p>
+      <p>• <strong>Any ARD Client</strong> discovering <code>/.well-known/ai-catalog.json</code></p>
     </div>
 
     <footer>

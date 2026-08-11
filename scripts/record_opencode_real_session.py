@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 """
-Real OpenCode AI Agent PTY Session Recorder
+Real OpenCode AI Agent PTY Session Recorder (3 Core Scenarios)
 
 Executes the actual OpenCode binary (opencode run) in the container, driving real
-LLM tool calls through the ARD MCP server:
-- Uses scripts/banner.sh for instant scenario header rendering.
-- Step 1: opencode mcp list -> Confirms ard-google-discovery connected.
-- Step 2: opencode run -> User asks for security design & SQL optimization; OpenCode autonomously calls ard_search live.
-- Step 3: opencode run --continue -> User opts out; OpenCode autonomously calls ard_set_preference(mode="opt_out") and re-searches.
-- Step 4: opencode run with Service Account -> OpenCode calls ard_auth_status and ard_search live with active credentials.
-- Step 5: Complete Podman OpenCode E2E test suite (5/5 passing).
+LLM tool calls through the ARD MCP server for the 3 focused scenarios:
+- Scenario 1: Tier 0 Pure Public Discovery (Zero-Auth Counterpoint)
+- Scenario 2: Cloud Intent -> User: "No with an opt out" -> OpenCode calls ard_set_preference(mode="opt_out") & silences GCP
+- Scenario 3: Cloud Intent -> User: "Yes" -> OpenCode facilitates easy onboarding & unlocks BigQuery
+- Automated E2E Test Suite (4/4 passing)
 """
 
 import fcntl
@@ -58,12 +56,12 @@ class OpenCodePTYRecorder:
             except (OSError, ValueError):
                 break
 
-    def type_string(self, text: str, char_delay: float = 0.05) -> None:
+    def type_string(self, text: str, char_delay: float = 0.045) -> None:
         for char in text:
             os.write(self.master_fd, char.encode("utf-8"))
             time.sleep(char_delay)
 
-    def send_command(self, cmd: str, wait_after: float = 3.0, char_delay: float = 0.05) -> None:
+    def send_command(self, cmd: str, wait_after: float = 3.0, char_delay: float = 0.045) -> None:
         time.sleep(0.6)
         self.type_string(cmd, char_delay=char_delay)
         time.sleep(0.4)
@@ -134,50 +132,72 @@ class OpenCodePTYRecorder:
 
 def record_opencode_session():
     rec = OpenCodePTYRecorder(cols=112, rows=34)
-    print("🎬 Starting Real OpenCode AI Agent PTY Recorder...")
+    print("🎬 Starting Real OpenCode AI Agent PTY Recorder (3 Core Scenarios)...")
     rec.start()
 
     try:
-        # Title Banner (Instant shortcut via banner.sh)
-        rec.send_command("./scripts/banner.sh 0", wait_after=4.0, char_delay=0.03)
+        # Title Banner
+        rec.send_command("./scripts/banner.sh 0", wait_after=3.5, char_delay=0.03)
 
-        # 1. Verify OpenCode MCP Connection
+        # Verify OpenCode MCP Connection
         rec.send_command(
             "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c 'cd /workspace/ard-plugin-exploration && opencode mcp list'",
             wait_after=6.0,
-            char_delay=0.04,
+            char_delay=0.035,
         )
 
-        # 2. Scenario 1: OpenCode searches for zero-trust security & SQL optimization
+        # ---------------------------------------------------------------------
+        # Scenario 1: Tier 0 Pure Public Discovery (Zero Auth Counterpoint)
+        # ---------------------------------------------------------------------
         rec.send_command("./scripts/banner.sh 1", wait_after=3.0, char_delay=0.03)
         rec.send_command(
-            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && opencode run --model opencode/deepseek-v4-flash-free 'I need to design a zero trust security architecture and optimize my analytical SQL queries. Find tools for me.'\"",
+            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && opencode run --model opencode/deepseek-v4-flash-free 'I need best practices to optimize my SQL queries and design zero-trust security. Search tools for me.'\"",
             wait_after=14.0,
-            char_delay=0.04,
+            char_delay=0.035,
         )
 
-        # 3. Scenario 2: Multi-turn Opt-Out Flow (User declines GCP -> OpenCode calls ard_set_preference(mode="opt_out"))
+        # ---------------------------------------------------------------------
+        # Scenario 2: Unauthenticated Cloud Intent -> User Opts Out ("No with an opt out")
+        # ---------------------------------------------------------------------
         rec.send_command("./scripts/banner.sh 2", wait_after=3.0, char_delay=0.03)
+        # Turn 1: User asks for BigQuery
         rec.send_command(
-            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && opencode run --model opencode/deepseek-v4-flash-free --continue 'I do not have a GCP account and never want to use Google Cloud. Opt me out permanently so you never show me cloud tools, and tell me what offline tools I can use.'\"",
+            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && rm -rf /workspace/.config/ard && opencode run --model opencode/deepseek-v4-flash-free 'I want to run a live analytical query on a 100GB sales dataset in BigQuery. What tool can do this?'\"",
             wait_after=14.0,
-            char_delay=0.04,
+            char_delay=0.035,
+        )
+        # Turn 2: User responds "No with an opt out"
+        rec.send_command(
+            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && opencode run --model opencode/deepseek-v4-flash-free --continue 'No with an opt out'\"",
+            wait_after=14.0,
+            char_delay=0.035,
         )
 
-        # 4. Scenario 3: Authenticated Enterprise Dev with Service Account
+        # ---------------------------------------------------------------------
+        # Scenario 3: Unauthenticated Cloud Intent -> User Onboards ("Yes")
+        # ---------------------------------------------------------------------
         rec.send_command("./scripts/banner.sh 3", wait_after=3.0, char_delay=0.03)
+        # Turn 1: User asks for BigQuery
         rec.send_command(
-            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration -v /tmp/mock_secrets:/secrets:ro -e GOOGLE_APPLICATION_CREDENTIALS=/secrets/sa.json --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && opencode run --model opencode/deepseek-v4-flash-free 'Check auth status with ard_auth_status and search for cloud storage tools'\"",
+            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && rm -rf /workspace/.config/ard && opencode run --model opencode/deepseek-v4-flash-free 'I want to query a public BigQuery dataset. What tool can do this?'\"",
             wait_after=14.0,
-            char_delay=0.04,
+            char_delay=0.035,
+        )
+        # Turn 2: User responds "Yes, please log me in"
+        rec.send_command(
+            "podman run --rm -v $(pwd):/workspace/ard-plugin-exploration --entrypoint /bin/sh localhost/ard-opencode:latest -c \"cd /workspace/ard-plugin-exploration && opencode run --model opencode/deepseek-v4-flash-free --continue 'Yes, please log me in'\"",
+            wait_after=14.0,
+            char_delay=0.035,
         )
 
-        # 5. Scenario 4: Automated E2E Test Suite Execution in Podman Container
+        # ---------------------------------------------------------------------
+        # Scenario 4: Automated E2E Test Suite Execution in Container
+        # ---------------------------------------------------------------------
         rec.send_command("./scripts/banner.sh 4", wait_after=3.0, char_delay=0.03)
         rec.send_command(
             "python3 tests/e2e_podman_runner.py",
             wait_after=16.0,
-            char_delay=0.04,
+            char_delay=0.035,
         )
 
     finally:
