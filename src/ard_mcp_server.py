@@ -19,9 +19,13 @@ from ard_resolver import ARDCatalogResolver, AuthInspector, PreferencesManager
 
 class ARDMCPServer:
     def __init__(self, catalog_path: Path = None):
-        self.resolver = ARDCatalogResolver(catalog_path=catalog_path)
         self.auth_inspector = AuthInspector()
         self.prefs_manager = PreferencesManager()
+        self.resolver = ARDCatalogResolver(
+            catalog_path=catalog_path,
+            auth_inspector=self.auth_inspector,
+            prefs_manager=self.prefs_manager,
+        )
 
     def get_tools(self) -> List[Dict[str, Any]]:
         return [

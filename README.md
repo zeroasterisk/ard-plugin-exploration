@@ -2,34 +2,22 @@
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-blue)](https://zeroasterisk.github.io/ard-plugin-exploration/)
 [![ARD Spec](https://img.shields.io/badge/ARD_Spec-v0.5-indigo)](https://agenticresourcediscovery.org)
-[![Podman E2E](https://img.shields.io/badge/OpenCode_E2E-4%2F4_Passed-emerald)](./tests/e2e_podman_runner.py)
+[![Podman E2E](https://img.shields.io/badge/OpenCode_E2E-7%2F7_Passed-emerald)](./tests/e2e_podman_runner.py)
 
 Autonomous AI coding agent exploration (**OpenCode**) discovering and using **Google Cloud Managed MCP Servers** and **Google Agent Skills** via a canonical ARD v0.5 manifest (`ai-catalog.json`).
 
 ---
 
-## 🎯 The 3 Core Real-World Scenarios
+## 🎯 The Complete Real-World Developer Journeys
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ Scenario 1: Pure Public Discovery (Tier 0 Counterpoint)                                │
-│ • User asks for security design & SQL optimization.                                    │
-│ • OpenCode autonomously calls ard_search -> Returns Tier 0 skills.                     │
-│ • Immediate standalone value with zero auth, zero credentials, and no GCP prompts.    │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Scenario 2: Unauthenticated Cloud Intent -> User Opts Out ("No with an opt out")       │
-│ • User asks for BigQuery 100GB dataset query.                                          │
-│ • OpenCode: "BigQuery requires GCP auth. Do you want to login to GCP?"                │
-│ • User: "No with an opt out"                                                           │
-│ • OpenCode calls ard_set_preference(mode="opt_out") -> Silences GCP tools permanently. │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Scenario 3: Unauthenticated Cloud Intent -> User Onboards ("Yes")                      │
-│ • User asks for BigQuery dataset query.                                                │
-│ • OpenCode: "BigQuery requires GCP auth. Do you want to login to GCP?"                │
-│ • User: "Yes"                                                                          │
-│ • OpenCode guides easy onboarding (gcloud auth login) & unlocks tool without nagging.  │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-```
+| Journey | Developer Action | Agent & ARD Behavior | Human Burden |
+| :--- | :--- | :--- | :--- |
+| **1. Zero-Auth Discovery (Tier 0)** | *"I need SQL tuning & zero-trust security best practices"* | Recommends Tier 0 skills (`bigquery-guidelines`, `cloud-security-foundations`). | **0 commands, 0 auth friction** |
+| **2. Respectful Opt-Out** | *"No with an opt out"* when asked to log in | Persistently stores `opt_out`. Silences all GCP tools and prompts. Recommends local alternatives. | **1 natural refusal** |
+| **3. Live Human OAuth Onboarding & Execution** | 1. *"Yes, please log me in"*<br/>2. Completes browser OAuth login | Detects active ADC (`auth_ready: true`). Immediately runs SQL query against BigQuery API & summarizes data. | **Only browser OAuth consent** |
+| **4. API Key Only (Tier 1)** | Launches container with `GEMINI_API_KEY` | Unlocks Tier 1 Gemini developer tools directly without GCP account or login. | **0 GCP logins** |
+| **5. Enterprise Service Account (Tier 3)** | Mounts `GOOGLE_APPLICATION_CREDENTIALS` | Passively detects service account on boot. Enables all cloud tools without prompts. | **0 prompts** |
+| **6. Changing Mind (Opt-Out $\rightarrow$ Opt-In)** | *"Actually, I changed my mind. Please log me in"* | Updates preference to `allowed`, re-enables cloud discovery, and provides login commands. | **Seamless transition** |
 
 ---
 
