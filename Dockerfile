@@ -1,9 +1,15 @@
-# Containerized OpenCode Environment with ARD Discovery Plugin
+# Containerized OpenCode Environment with ARD Discovery Plugin & gcloud CLI
 FROM ghcr.io/anomalyco/opencode:latest
 
-# Install python3 and git for ARD resolver scripts and local repositories
+# Install python3, git, tar, curl, bash and extract google-cloud-sdk
 USER root
-RUN apk add --no-cache python3 git curl bash
+RUN apk add --no-cache python3 git curl bash tar && \
+    curl -sSL https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz | tar -xz -C /usr/local && \
+    ln -sf /usr/local/google-cloud-sdk/bin/gcloud /usr/bin/gcloud && \
+    ln -sf /usr/local/google-cloud-sdk/bin/bq /usr/bin/bq
+
+ENV CLOUDSDK_PYTHON=/usr/bin/python3
+ENV PATH="/usr/local/google-cloud-sdk/bin:${PATH}"
 
 # Set up working workspace directory
 WORKDIR /workspace
