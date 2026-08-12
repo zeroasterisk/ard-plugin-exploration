@@ -225,7 +225,7 @@
     </div>
 
     <!-- Ecosystem Compatibility -->
-    <div class="card" style="margin-bottom:32px;">
+    <div class="card" style="margin-bottom:24px;">
       <h3>🌐 Open ARD Standard & Ecosystem Compatibility</h3>
       <p>This catalog complies with the <a href="https://agenticresourcediscovery.org" target="_blank" style="color:var(--primary);">ARD v0.5 Specification</a> using <code>urn:ai:google.com:...</code> identifiers. It is compatible with all ARD implementations:</p>
       <p>• <strong>Our OpenCode / Antigravity MCP Plugin</strong> (<code>src/ard_mcp_server.py</code> & <code>opencode.json</code>)</p>
@@ -234,12 +234,48 @@
       <p>• <strong>Any ARD Client</strong> discovering <code>/.well-known/ai-catalog.json</code></p>
     </div>
 
+    <!-- Decision Flowchart Section -->
+    <div class="card" style="margin-bottom:32px;">
+      <h2>🧭 Autonomous Agent Decision & Progressive Auth Flowchart</h2>
+      <p style="margin-bottom:16px;">How the autonomous agent navigates auth tiers, respects user opt-out preferences, and minimizes human friction:</p>
+      <div style="display:flex; justify-content:center; background:rgba(15,23,42,0.7); border:1px solid var(--card-border); border-radius:8px; padding:20px; overflow-x:auto;">
+        <pre class="mermaid" style="margin:0; text-align:center;">
+flowchart TD
+    A["Developer Prompt to AI Agent"] --> B{"Requires Auth?"}
+    
+    B -- "Tier 0: No Auth<br/>(Docs, Architectural Guidelines, Standalone Skills)" --> C["Agent directly provides skills & recommendations<br/><b>Human Burden: 0</b>"]
+    
+    B -- "Tier 1: API Key<br/>(Gemini Developer API, Public Endpoints)" --> D{"API Key Present in Env?<br/>(e.g. GEMINI_API_KEY)"}
+    
+    D -- "Yes" --> E["Agent executes API calls directly<br/><b>Human Burden: 0</b>"]
+    D -- "No" --> F["Agent advises setting API key / offline fallback<br/><b>Human Burden: 1 export command</b>"]
+    
+    B -- "Tier 2/3: Google Cloud Managed Tools<br/>(BigQuery, Vertex AI, AlloyDB)" --> G{"GCP Auth Present in Environment?<br/>(User ADC or Service Account)"}
+    
+    G -- "Yes" --> H["Agent executes cloud workload directly<br/><b>Human Burden: 0</b>"]
+    
+    G -- "No Auth & No Opt-Out Recorded" --> I["Agent asks: 'Do you want to log in to GCP?'"]
+    
+    I -- "User: 'No with an opt out'" --> J["Agent records opt-out preference.<br/>Permanently silences GCP tools & offers local alternatives.<br/><b>Human Burden: 1 natural refusal</b>"]
+    
+    I -- "User: 'Yes'" --> K["Agent records consent & guides minimal onboarding:<br/><code>gcloud auth application-default login --no-launch-browser</code><br/><b>Human Boundary: One-time Browser OAuth</b>"]
+    
+    K --> L["User completes browser OAuth & pastes code"]
+    L --> H
+    
+    J -.-> M["User changes mind: 'Actually, log me in'"]
+    M --> K
+        </pre>
+      </div>
+    </div>
+
     <footer>
       Agent Resource Discovery (ARD v0.5) Google Ecosystem Exploration • <a href="https://github.com/zeroasterisk/ard-plugin-exploration" target="_blank" style="color:var(--primary); text-decoration:none;">GitHub: zeroasterisk/ard-plugin-exploration</a>
     </footer>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/asciinema-player@3.8.2/dist/bundle/asciinema-player.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <script>
     AsciinemaPlayer.create('./demo.cast', document.getElementById('player'), {
       autoPlay: true,
@@ -247,6 +283,21 @@
       speed: 1.0,
       theme: 'dracula',
       fit: 'width'
+    });
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        darkMode: true,
+        background: '#0f172a',
+        primaryColor: '#38bdf8',
+        primaryTextColor: '#f8fafc',
+        primaryBorderColor: '#0284c7',
+        lineColor: '#94a3b8',
+        secondaryColor: '#a855f7',
+        tertiaryColor: '#1e293b'
+      }
     });
   </script>
 </body>

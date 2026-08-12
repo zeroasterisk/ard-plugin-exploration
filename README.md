@@ -21,6 +21,38 @@ Autonomous AI coding agent exploration (**OpenCode**) discovering and using **Go
 
 ---
 
+### 🧭 Autonomous Agent Decision & Progressive Auth Flowchart
+
+```mermaid
+flowchart TD
+    A["Developer Prompt to AI Agent"] --> B{"Requires Auth?"}
+    
+    B -- "Tier 0: No Auth<br/>(Docs, Architectural Guidelines, Standalone Skills)" --> C["Agent directly provides skills & recommendations<br/><b>Human Burden: 0</b>"]
+    
+    B -- "Tier 1: API Key<br/>(Gemini Developer API, Public Endpoints)" --> D{"API Key Present in Env?<br/>(e.g. GEMINI_API_KEY)"}
+    
+    D -- "Yes" --> E["Agent executes API calls directly<br/><b>Human Burden: 0</b>"]
+    D -- "No" --> F["Agent advises setting API key / offline fallback<br/><b>Human Burden: 1 export command</b>"]
+    
+    B -- "Tier 2/3: Google Cloud Managed Tools<br/>(BigQuery, Vertex AI, AlloyDB)" --> G{"GCP Auth Present in Environment?<br/>(User ADC or Service Account)"}
+    
+    G -- "Yes" --> H["Agent executes cloud workload directly<br/><b>Human Burden: 0</b>"]
+    
+    G -- "No Auth & No Opt-Out Recorded" --> I["Agent asks: 'Do you want to log in to GCP?'"]
+    
+    I -- "User: 'No with an opt out'" --> J["Agent records opt-out preference.<br/>Permanently silences GCP tools & offers local alternatives.<br/><b>Human Burden: 1 natural refusal</b>"]
+    
+    I -- "User: 'Yes'" --> K["Agent records consent & guides minimal onboarding:<br/><code>gcloud auth application-default login --no-launch-browser</code><br/><b>Human Boundary: One-time Browser OAuth</b>"]
+    
+    K --> L["User completes browser OAuth & pastes code"]
+    L --> H
+    
+    J -.-> M["User changes mind: 'Actually, log me in'"]
+    M --> K
+```
+
+---
+
 ## 🎥 Watch the Real OpenCode Agent Execution
 
 🔗 **Live Web Player:** **[https://zeroasterisk.github.io/ard-plugin-exploration/](https://zeroasterisk.github.io/ard-plugin-exploration/)**
