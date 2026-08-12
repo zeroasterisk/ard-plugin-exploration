@@ -46,7 +46,7 @@ python3 /usr/local/google/home/alanblount/.gemini/config/plugins/ard-google-disc
      - Check if user has opted out of GCP recommendations (`ard_resolver.py prefs get`).
      - If not opted out, present the choice gracefully:
        > *"I found the **Google BigQuery MCP Server** which can execute this query directly, but it requires Google Cloud Application Default Credentials (ADC). Alternatively, we can use the **BigQuery SQL Guidelines Skill** to optimize your SQL query offline. Which do you prefer?"*
-     - If the user agrees to connect GCP, provide or run the onboarding command:
+     - If the user agrees to connect GCP, record their decision (`ard_record_decision {"decision": "allowed", "service_identifier": "..."}`) and provide the onboarding command for their terminal:
        `gcloud auth application-default login`
      - If the user prefers not to use GCP, record their decision so they are never prompted again:
        `ard_resolver.py prefs opt-out`

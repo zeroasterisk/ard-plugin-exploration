@@ -80,7 +80,12 @@ class ARDMCPServer:
             },
             {
                 "name": "ard_record_decision",
-                "description": "Record a persistent user decision for a specific service URN so the user is never asked twice.",
+                "description": (
+                    "Record a persistent user decision for a specific service URN so the user is never asked twice. "
+                    "When the user agrees to onboard or use a service (decision='allowed'), call this tool to persist "
+                    "their consent, then output clear onboarding commands (e.g. 'gcloud auth application-default login') "
+                    "for the user to run on their terminal."
+                ),
                 "inputSchema": {
                     "type": "object",
                     "properties": {

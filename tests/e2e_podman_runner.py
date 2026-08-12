@@ -1,56 +1,42 @@
 #!/usr/bin/env python3
 """
-E2E Podman Experiment Runner for 3 Core OpenCode Scenarios
+Automated E2E Test Suite for ARD Plugin with OpenCode Agent in Podman
 
-Tests the 3 bulletproof real-world conversational scenarios using the real OpenCode binary:
-- Scenario 1: Tier 0 Pure Public Discovery (Zero Auth Counterpoint)
-- Scenario 2: Unauthenticated Cloud Intent -> User: "No with an opt out" -> OpenCode opts out and silences GCP
-- Scenario 3: Unauthenticated Cloud Intent -> User: "Yes" -> OpenCode facilitates easy onboarding & unlocks tool
-- Test 4: Complete Unit and Multi-Turn Scenario Test Suite
+Runs 4 comprehensive end-to-end scenarios verifying:
+1. Scenario 1: Tier 0 pure public skills discovery (no auth required, zero prompts).
+2. Scenario 2: Cloud intent -> OpenCode asks to login -> User: "No with an opt out" -> OpenCode opts out and silences GCP.
+3. Scenario 3: Cloud intent -> OpenCode asks to login -> User: "Yes" -> OpenCode facilitates easy onboarding.
+4. Test 4: All 11 unit and scenario matrix tests inside the container.
 """
 
-import json
 import os
 import subprocess
 import sys
-import tempfile
+import unittest
 from pathlib import Path
-from typing import Dict, List, Optional
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OPENCODE_IMAGE = "localhost/ard-opencode:latest"
 
 
-def run_opencode_in_container(
-    cmd_args: List[str],
-    env: Optional[Dict[str, str]] = None,
-    volumes: Optional[Dict[str, str]] = None,
-    timeout: int = 90,
-) -> subprocess.CompletedProcess:
-    """Runs the opencode binary inside the Podman container."""
+def run_opencode_in_container(cmd_args, timeout=120):
+    """Executes a command inside the ard-opencode container with local volumes bound."""
     podman_cmd = [
         "podman",
         "run",
         "--rm",
         "-v",
         f"{REPO_ROOT}:/workspace/ard-plugin-exploration",
-    ]
-
-    if volumes:
-        for host_path, container_path in volumes.items():
-            podman_cmd.extend(["-v", f"{host_path}:{container_path}"])
-
-    if env:
-        for k, v in env.items():
-            podman_cmd.extend(["-e", f"{k}={v}"])
-
-    podman_cmd.extend([
+        "-e",
+        "XDG_CONFIG_HOME=/workspace/.config",
+        "-e",
+        "ARD_CONFIG_DIR=/workspace/.config/ard",
         "--entrypoint",
         "/bin/sh",
         OPENCODE_IMAGE,
         "-c",
         "cd /workspace/ard-plugin-exploration && " + " ".join(cmd_args),
-    ])
+    ]
 
     return subprocess.run(
         podman_cmd,
@@ -70,6 +56,7 @@ def test_1_scenario_1_tier_0_pure_discovery():
     res = run_opencode_in_container([
         "opencode",
         "run",
+        "--auto",
         "--model",
         "opencode/deepseek-v4-flash-free",
         prompt,
@@ -99,6 +86,7 @@ def test_2_scenario_2_opt_out_flow():
     res1 = run_opencode_in_container([
         "opencode",
         "run",
+        "--auto",
         "--model",
         "opencode/deepseek-v4-flash-free",
         turn1_prompt,
@@ -114,6 +102,7 @@ def test_2_scenario_2_opt_out_flow():
     res2 = run_opencode_in_container([
         "opencode",
         "run",
+        "--auto",
         "--model",
         "opencode/deepseek-v4-flash-free",
         "--continue",
@@ -140,7 +129,7 @@ def test_3_scenario_3_onboarding_flow():
     print("=" * 80)
 
     # Turn 1: Reset prefs & ask for BigQuery query
-    turn1_cmd = "rm -rf /workspace/.config/ard && opencode run --model opencode/deepseek-v4-flash-free 'I want to query a public BigQuery dataset. What tool can do this?'"
+    turn1_cmd = "rm -rf /workspace/.config/ard && opencode run --auto --model opencode/deepseek-v4-flash-free 'I want to query a public BigQuery dataset. What tool can do this?'"
     res1 = run_opencode_in_container([turn1_cmd])
     out1 = res1.stdout + res1.stderr
     print("--- Turn 1 (Agent Response) ---")
@@ -153,6 +142,7 @@ def test_3_scenario_3_onboarding_flow():
     res2 = run_opencode_in_container([
         "opencode",
         "run",
+        "--auto",
         "--model",
         "opencode/deepseek-v4-flash-free",
         "--continue",
@@ -178,48 +168,37 @@ def test_4_unit_and_scenario_suite():
     print("🧪 TEST 4: Complete ARD & OpenCode Unit and Scenario Suite")
     print("=" * 80)
 
-    res = subprocess.run(
-        [sys.executable, "-m", "unittest", "discover", "-s", str(REPO_ROOT / "tests"), "-v"],
-        capture_output=True,
-        text=True,
-    )
-    print(res.stderr or res.stdout)
-    assert res.returncode == 0, f"Unit tests failed: {res.stderr}"
-    print("✅ Test 4 Passed: All 11 unit and scenario tests passed.")
+    res = run_opencode_in_container([
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_*.py",
+        "-v",
+    ])
+    out = res.stdout + res.stderr
+    print(out)
+    assert res.returncode == 0, f"Unit test suite failed: {res.stderr}"
+    print("✅ Test 4 Passed: All 11 unit and scenario tests executed successfully.")
 
 
-def main():
+def run_all_e2e_tests():
     print("=" * 80)
-    print("🚀 LAUNCHING OPENCODE REAL AGENT E2E TEST RUNNER")
-    print(f"• Container Image: {OPENCODE_IMAGE}")
-    print(f"• Repo Path:       {REPO_ROOT}")
+    print("🚀 RUNNING OPENCODE CONTAINERIZED ARD E2E TEST SUITE")
     print("=" * 80)
 
-    tests = [
-        test_1_scenario_1_tier_0_pure_discovery,
-        test_2_scenario_2_opt_out_flow,
-        test_3_scenario_3_onboarding_flow,
-        test_4_unit_and_scenario_suite,
-    ]
-
-    passed = 0
-    failed = 0
-
-    for t in tests:
-        try:
-            t()
-            passed += 1
-        except Exception as exc:
-            print(f"\n❌ FAILED: {t.__name__}: {exc}")
-            failed += 1
+    test_1_scenario_1_tier_0_pure_discovery()
+    test_2_scenario_2_opt_out_flow()
+    test_3_scenario_3_onboarding_flow()
+    test_4_unit_and_scenario_suite()
 
     print("\n" + "=" * 80)
-    print(f"📊 OPENCODE E2E SUMMARY: {passed} PASSED, {failed} FAILED")
+    print("🎉 ALL 4 E2E CONTAINER TESTS PASSED!")
     print("=" * 80)
-
-    if failed > 0:
-        sys.exit(1)
 
 
 if __name__ == "__main__":
-    main()
+    run_all_e2e_tests()

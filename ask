@@ -23,4 +23,4 @@ podman run --rm \
   -e ARD_CONFIG_DIR="/workspace/.config/ard" \
   --entrypoint /bin/sh \
   localhost/ard-opencode:latest \
-  -c "cd /workspace/ard-plugin-exploration && opencode run --model opencode/deepseek-v4-flash-free $SESSION_FLAG \"$PROMPT\""
+  -c "cd /workspace/ard-plugin-exploration && opencode run --auto --model opencode/deepseek-v4-flash-free $SESSION_FLAG \"$PROMPT\""
