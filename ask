@@ -2,19 +2,26 @@
 # Shortcut helper to interact naturally with OpenCode agent in Podman
 set -e
 
+# Handle --new or --reset flags to start a fresh session
+if [ "$1" == "--new" ] || [ "$1" == "--reset" ]; then
+  rm -f ".config/opencode_session_active"
+  shift
+fi
+
 PROMPT="$*"
 if [ -z "$PROMPT" ]; then
-  echo "Usage: ./ask \"your question or response\""
+  echo "Usage: ./ask [--new|--reset] \"your question or response\""
   exit 1
 fi
 
 echo -e "\033[0;36m> using podman container · asking opencode · using deepseek-v4-flash-free\033[0m\n"
 
+mkdir -p ".config"
 SESSION_FLAG=""
-if [ -f "/tmp/opencode_session_active" ]; then
+if [ -f ".config/opencode_session_active" ]; then
   SESSION_FLAG="--continue"
 else
-  touch "/tmp/opencode_session_active"
+  touch ".config/opencode_session_active"
 fi
 
 podman run --rm \
