@@ -175,7 +175,7 @@
         "best practices for analytical schemas",
         "avoid full table scans in bigquery"
       ],
-      "url": "https://raw.githubusercontent.com/google/skills/main/skills/bigquery/SKILL.md",
+      "url": "https://raw.githubusercontent.com/google/skills/main/skills/cloud/bigquery-basics/SKILL.md",
       "metadata": {
         "sourceRepo": "https://github.com/google/skills",
         "auth": {

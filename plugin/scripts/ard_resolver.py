@@ -76,17 +76,25 @@ class AuthInspector:
             except Exception:
                 pass
 
-        # 2. Check Standard User ADC Location
         if self.custom_adc_path is not None:
             adc_path = self.custom_adc_path
+        elif sys.platform == "win32":
+            appdata = self.env.get("APPDATA", "")
+            adc_path = Path(appdata) / "gcloud" / "application_default_credentials.json"
         else:
-            if sys.platform == "win32":
-                appdata = self.env.get("APPDATA", "")
-                adc_path = Path(appdata) / "gcloud" / "application_default_credentials.json"
-            else:
-                config_home = self.env.get("XDG_CONFIG_HOME")
-                base = Path(config_home) if config_home else Path.home() / ".config"
-                adc_path = base / "gcloud" / "application_default_credentials.json"
+            candidate_paths = []
+            if self.env.get("XDG_CONFIG_HOME"):
+                candidate_paths.append(Path(self.env["XDG_CONFIG_HOME"]) / "gcloud" / "application_default_credentials.json")
+            candidate_paths.append(Path.home() / ".config" / "gcloud" / "application_default_credentials.json")
+            candidate_paths.append(Path("/root/.config/gcloud/application_default_credentials.json"))
+            
+            adc_path = None
+            for p in candidate_paths:
+                if p.is_file():
+                    adc_path = p
+                    break
+            if adc_path is None:
+                adc_path = candidate_paths[0]
 
         if adc_path.is_file():
             try:
@@ -460,6 +468,15 @@ class ARDCatalogResolver:
 
         results.sort(key=lambda r: r.score, reverse=True)
         return results[:limit]
+
+    def get_resource(self, identifier: str) -> Optional[Dict[str, Any]]:
+        """Look up full resource definition by canonical URN identifier or short name."""
+        catalog = self.load_catalog()
+        entries = catalog.get("entries", []) or catalog.get("resources", [])
+        for entry in entries:
+            if entry.get("identifier") == identifier or entry.get("name") == identifier:
+                return entry
+        return None
 
 
 def build_cli() -> argparse.ArgumentParser:

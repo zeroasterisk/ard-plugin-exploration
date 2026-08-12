@@ -27,7 +27,7 @@ Use this skill when the user asks about Google Cloud services, cloud architectur
 Run the resolver script to search the canonical ARD catalog:
 
 ```bash
-python3 /usr/local/google/home/alanblount/.gemini/config/plugins/ard-google-discovery/scripts/ard_resolver.py search "<user intent or query>" --json
+python3 ./plugin/scripts/ard_resolver.py search "<user intent or query>" --json
 ```
 
 ### Auth Tiers:
