@@ -90,6 +90,40 @@
       background: #334155;
     }
 
+    /* Tab Navigation */
+    .tab-nav {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 12px 24px;
+      border-radius: 9999px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      background: #1e293b;
+      color: #fff;
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.16);
+      color: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+    }
+
     /* Player Container */
     .player-card {
       background: #000;
@@ -212,54 +246,105 @@
       </div>
     </header>
 
+    <!-- Tab Navigation Switcher -->
+    <div class="tab-nav">
+      <button id="btn-tab-basics" class="tab-btn active" onclick="switchTab('basics')">
+        <span>⚡</span> The Basics: ARD & Plugins 101 (5 Steps)
+      </button>
+      <button id="btn-tab-complete" class="tab-btn" onclick="switchTab('complete')">
+        <span>🚀</span> The Complete Suite: Auth Tiers & E2E (7 Scenarios)
+      </button>
+    </div>
+
     <!-- Asciinema Player Section -->
     <div class="player-card">
       <div id="player"></div>
     </div>
 
-    <!-- 2-Column Overview Cards -->
-    <div class="grid-2">
-      <div class="card">
-        <h2>🎯 The 7 Real-World Scenarios</h2>
-        <ul class="timeline-list">
-          <li class="timeline-item">
-            <span class="time-stamp">1</span>
-            <span><strong>Scenario 1 (Tier 0 Pure Discovery):</strong> Zero-auth counterpoint. User asks for security design & SQL tuning ➜ OpenCode recommends Tier 0 skills (no auth, no GCP prompts).</span>
-          </li>
-          <li class="timeline-item">
-            <span class="time-stamp">2</span>
-            <span><strong>Scenario 2 (Respectful Opt-Out Flow):</strong> User asks for BigQuery ➜ OpenCode asks <em>"Do you want to login to GCP?"</em> ➜ User replies <em>"No with an opt out"</em> ➜ GCP silenced permanently.</span>
-          </li>
-          <li class="timeline-item">
-            <span class="time-stamp">3</span>
-            <span><strong>Scenario 3 (Live Human OAuth & Execution):</strong> User replies <em>"Yes"</em> ➜ Completes browser OAuth login ➜ OpenCode detects active ADC & autonomously runs live BigQuery SQL query.</span>
-          </li>
-          <li class="timeline-item">
-            <span class="time-stamp">4</span>
-            <span><strong>Scenario 4 (Path A: API Key Only):</strong> Environment has <code>GEMINI_API_KEY</code> ➜ Tier 1 Gemini developer tools unlocked directly with zero GCP login prompts.</span>
-          </li>
-          <li class="timeline-item">
-            <span class="time-stamp">5</span>
-            <span><strong>Scenario 5 (Path B: Enterprise SA Mount):</strong> Environment has <code>GOOGLE_APPLICATION_CREDENTIALS</code> ➜ OpenCode passively detects active service account on Turn 1 with zero prompts.</span>
-          </li>
-          <li class="timeline-item">
-            <span class="time-stamp">6</span>
-            <span><strong>Scenario 6 (Path C: Changing Mind):</strong> Previously opted-out user asks to log in ➜ ARD seamlessly flips preference to <code>allowed</code> and guides onboarding.</span>
-          </li>
-          <li class="timeline-item">
-            <span class="time-stamp">7</span>
-            <span><strong>Scenario 7 (Complete Automated E2E Suite):</strong> Real-time containerized execution of all 7 E2E test scenarios and 13 unit tests.</span>
-          </li>
-        </ul>
-      </div>
+    <!-- Tab 1: The Basics (5-Step Lifecycle) Content -->
+    <div id="tab-basics-content">
+      <div class="grid-2">
+        <div class="card">
+          <h2>⚡ The 5-Step ARD & Plugin Lifecycle</h2>
+          <ul class="timeline-list">
+            <li class="timeline-item">
+              <span class="time-stamp">1</span>
+              <span><strong>Here's OpenCode (Agent Environment):</strong> OpenCode initializes in a clean terminal with the canonical ARD discovery MCP plugin loaded.</span>
+            </li>
+            <li class="timeline-item">
+              <span class="time-stamp">2</span>
+              <span><strong>Here's How It Searches (ARD):</strong> Developer prompts in natural language; OpenCode autonomously calls <code>ard_search</code> with semantic keywords.</span>
+            </li>
+            <li class="timeline-item">
+              <span class="time-stamp">3</span>
+              <span><strong>Here's How It Finds What It Wants:</strong> OpenCode inspects <code>ai-catalog.json</code> (via <code>ard_get_resource</code>), checking capabilities and Tier 0 zero-auth readiness.</span>
+            </li>
+            <li class="timeline-item">
+              <span class="time-stamp">4</span>
+              <span><strong>Here's How It Sets Up the Plugin:</strong> OpenCode enables and registers the skill for the session with zero auth friction.</span>
+            </li>
+            <li class="timeline-item">
+              <span class="time-stamp">5</span>
+              <span><strong>Here's How It Uses the Plugin:</strong> OpenCode directly applies specialized architectural guidelines (50M-row schema partitioning & clustering) to solve the user's task.</span>
+            </li>
+          </ul>
+        </div>
 
-      <div class="card">
-        <h2>🔑 Why This Solves Developer & Detractor Concerns</h2>
-        <p>• <strong>Zero Account Prerequisite:</strong> Over 60% of entries in the catalog are standalone Tier 0 skills that provide instant local value without any account or API key.</p>
-        <p>• <strong>Strict User Agency:</strong> When a user opts out, the agent permanently records the preference and never nags about cloud accounts again.</p>
-        <p>• <strong>Tier 1 API Key Direct Enablement:</strong> Developers with only Gemini API keys get immediate access to models and skills without GCP onboarding.</p>
-        <p>• <strong>Enterprise Headless Friendly:</strong> Automated service accounts mount passively without interactive prompts.</p>
-        <p>• <strong>Pre-Execution Clarity:</strong> Proactive <code>status: needs_onboarding</code> metadata prevents blind 401/403 runtime crashes.</p>
+        <div class="card">
+          <h2>💡 Why ARD Changes Agent Tooling</h2>
+          <p>• <strong>Zero Bloat at Startup:</strong> Agents start fast with a lightweight discovery tool instead of pre-loading dozens of heavy plugins into the system prompt.</p>
+          <p>• <strong>Open Manifest Standard:</strong> Any ecosystem or company hosts <code>/.well-known/ai-catalog.json</code> with canonical <code>urn:ai:...</code> identifiers.</p>
+          <p>• <strong>Tier 0 Local Value First:</strong> Over 60% of capabilities (skills, guides, design rules) require 0 accounts and 0 API keys.</p>
+          <p>• <strong>Client Agnostic:</strong> Works identically across OpenCode, Antigravity, Claude Code, Cursor, and custom agent harnesses.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Complete Suite (7 Scenarios & Auth Tiers) Content -->
+    <div id="tab-complete-content" style="display:none;">
+      <div class="grid-2">
+        <div class="card">
+          <h2>🎯 The 7 Real-World Scenarios</h2>
+          <ul class="timeline-list">
+            <li class="timeline-item">
+              <span class="time-stamp">1</span>
+              <span><strong>Scenario 1 (Tier 0 Pure Discovery):</strong> Zero-auth counterpoint. User asks for security design & SQL tuning ➜ OpenCode recommends Tier 0 skills (no auth, no GCP prompts).</span>
+            </li>
+            <li class="timeline-item">
+              <span class="time-stamp">2</span>
+              <span><strong>Scenario 2 (Respectful Opt-Out Flow):</strong> User asks for BigQuery ➜ OpenCode asks <em>"Do you want to login to GCP?"</em> ➜ User replies <em>"No with an opt out"</em> ➜ GCP silenced permanently.</span>
+            </li>
+            <li class="timeline-item">
+              <span class="time-stamp">3</span>
+              <span><strong>Scenario 3 (Live Human OAuth & Execution):</strong> User replies <em>"Yes"</em> ➜ Completes browser OAuth login ➜ OpenCode detects active ADC & autonomously runs live BigQuery SQL query.</span>
+            </li>
+            <li class="timeline-item">
+              <span class="time-stamp">4</span>
+              <span><strong>Scenario 4 (Path A: API Key Only):</strong> Environment has <code>GEMINI_API_KEY</code> ➜ Tier 1 Gemini developer tools unlocked directly with zero GCP login prompts.</span>
+            </li>
+            <li class="timeline-item">
+              <span class="time-stamp">5</span>
+              <span><strong>Scenario 5 (Path B: Enterprise SA Mount):</strong> Environment has <code>GOOGLE_APPLICATION_CREDENTIALS</code> ➜ OpenCode passively detects active service account on Turn 1 with zero prompts.</span>
+            </li>
+            <li class="timeline-item">
+              <span class="time-stamp">6</span>
+              <span><strong>Scenario 6 (Path C: Changing Mind):</strong> Previously opted-out user asks to log in ➜ ARD seamlessly flips preference to <code>allowed</code> and guides onboarding.</span>
+            </li>
+            <li class="timeline-item">
+              <span class="time-stamp">7</span>
+              <span><strong>Scenario 7 (Complete Automated E2E Suite):</strong> Real-time containerized execution of all 7 E2E test scenarios and 13 unit tests.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>🔑 Why This Solves Developer & Detractor Concerns</h2>
+          <p>• <strong>Zero Account Prerequisite:</strong> Over 60% of entries in the catalog are standalone Tier 0 skills that provide instant local value without any account or API key.</p>
+          <p>• <strong>Strict User Agency:</strong> When a user opts out, the agent permanently records the preference and never nags about cloud accounts again.</p>
+          <p>• <strong>Tier 1 API Key Direct Enablement:</strong> Developers with only Gemini API keys get immediate access to models and skills without GCP onboarding.</p>
+          <p>• <strong>Enterprise Headless Friendly:</strong> Automated service accounts mount passively without interactive prompts.</p>
+          <p>• <strong>Pre-Execution Clarity:</strong> Proactive <code>status: needs_onboarding</code> metadata prevents blind 401/403 runtime crashes.</p>
+        </div>
       </div>
     </div>
 
@@ -338,13 +423,43 @@ flowchart TD
   <script src="https://cdn.jsdelivr.net/npm/asciinema-player@3.8.2/dist/bundle/asciinema-player.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <script>
-    AsciinemaPlayer.create('./demo.cast', document.getElementById('player'), {
-      autoPlay: true,
-      loop: false,
-      speed: 1.0,
-      theme: 'dracula',
-      fit: 'width'
-    });
+    let currentPlayer = null;
+
+    function loadPlayer(castFile) {
+      const playerDiv = document.getElementById('player');
+      playerDiv.innerHTML = '';
+      currentPlayer = AsciinemaPlayer.create(castFile, playerDiv, {
+        autoPlay: true,
+        loop: false,
+        speed: 1.0,
+        theme: 'dracula',
+        fit: 'width'
+      });
+    }
+
+    function switchTab(tab) {
+      const btnBasics = document.getElementById('btn-tab-basics');
+      const btnComplete = document.getElementById('btn-tab-complete');
+      const contentBasics = document.getElementById('tab-basics-content');
+      const contentComplete = document.getElementById('tab-complete-content');
+
+      if (tab === 'basics') {
+        btnBasics.classList.add('active');
+        btnComplete.classList.remove('active');
+        contentBasics.style.display = 'block';
+        contentComplete.style.display = 'none';
+        loadPlayer('./demo-basics.cast');
+      } else {
+        btnComplete.classList.add('active');
+        btnBasics.classList.remove('active');
+        contentBasics.style.display = 'none';
+        contentComplete.style.display = 'block';
+        loadPlayer('./demo.cast');
+      }
+    }
+
+    // Initialize with Basics tab
+    loadPlayer('./demo-basics.cast');
 
     let currentZoom = 1.0;
     function zoomChart(delta) {

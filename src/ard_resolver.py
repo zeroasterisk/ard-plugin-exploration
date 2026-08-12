@@ -469,6 +469,15 @@ class ARDCatalogResolver:
         results.sort(key=lambda r: r.score, reverse=True)
         return results[:limit]
 
+    def get_resource(self, identifier: str) -> Optional[Dict[str, Any]]:
+        """Look up full resource definition by canonical URN identifier or short name."""
+        catalog = self.load_catalog()
+        entries = catalog.get("entries", []) or catalog.get("resources", [])
+        for entry in entries:
+            if entry.get("identifier") == identifier or entry.get("name") == identifier:
+                return entry
+        return None
+
 
 def build_cli() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(

@@ -8,6 +8,18 @@ Autonomous AI coding agent exploration (**OpenCode**) discovering and using **Go
 
 ---
 
+## ⚡ ARD 101: The 5-Step Plugin Lifecycle
+
+How the OpenCode AI coding agent dynamically discovers and uses capabilities via ARD:
+
+1. **🤖 The Agent Environment (Here's OpenCode):** OpenCode initializes in a clean environment with the canonical ARD discovery MCP plugin.
+2. **🔍 Capability Search (Here's How It Searches):** User prompts in plain language; OpenCode autonomously calls `ard_search` with semantic keywords.
+3. **📖 Catalog Lookup (Here's How It Finds What It Wants):** OpenCode queries `ai-catalog.json` (`ard_get_resource`), evaluates capabilities, and identifies Tier 0 zero-auth readiness.
+4. **📦 Plugin Setup & Enablement (Here's How It Installs / Loads):** OpenCode enables and registers the skill in session configuration with zero auth friction.
+5. **⚡ Normal Execution (Here's How It Solves Tasks):** OpenCode directly applies the loaded domain rules (partitioning & clustering a 50M-row orders table) in its coding output.
+
+---
+
 ## 🎯 The Complete Real-World Developer Journeys
 
 | Journey | Developer Action | Agent & ARD Behavior | Human Burden |
@@ -55,10 +67,13 @@ flowchart TD
 
 ## 🎥 Watch the Real OpenCode Agent Execution
 
-🔗 **Live Web Player:** **[https://zeroasterisk.github.io/ard-plugin-exploration/](https://zeroasterisk.github.io/ard-plugin-exploration/)**
+🔗 **Interactive Tabbed Web Player:** **[https://zeroasterisk.github.io/ard-plugin-exploration/](https://zeroasterisk.github.io/ard-plugin-exploration/)**
 
 ```bash
-# Play locally via asciinema:
+# Play Tab 1: The Basics (5-Step Lifecycle Walkthrough)
+asciinema play demo-basics.cast
+
+# Play Tab 2: The Complete Suite (7 Scenarios & Container E2E)
 asciinema play demo.cast
 
 # Or open in browser:

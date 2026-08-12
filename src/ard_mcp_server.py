@@ -106,6 +106,23 @@ class ARDMCPServer:
                     "required": ["service_identifier", "decision"],
                 },
             },
+            {
+                "name": "ard_get_resource",
+                "description": (
+                    "Retrieve the full catalog resource definition and details for a specific canonical URN "
+                    "(e.g. urn:ai:google.com:skills:bigquery-guidelines or urn:ai:google.com:mcp:bigquery)."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "service_identifier": {
+                            "type": "string",
+                            "description": "Canonical URN identifier of the resource.",
+                        }
+                    },
+                    "required": ["service_identifier"],
+                },
+            },
         ]
 
     def handle_call_tool(self, name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
@@ -122,6 +139,28 @@ class ARDMCPServer:
                     }
                 ]
             }
+        elif name == "ard_get_resource":
+            ident = arguments.get("service_identifier", "")
+            resource = self.resolver.get_resource(ident)
+            if resource:
+                return {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": json.dumps(resource, indent=2),
+                        }
+                    ]
+                }
+            else:
+                return {
+                    "isError": True,
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"Resource with identifier '{ident}' not found in catalog.",
+                        }
+                    ],
+                }
         elif name == "ard_auth_status":
             status = self.auth_inspector.inspect(fast=True)
             return {
