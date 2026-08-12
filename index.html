@@ -181,7 +181,7 @@
     <!-- 2-Column Overview Cards -->
     <div class="grid-2">
       <div class="card">
-        <h2>🎯 The 3 Core Scenarios</h2>
+        <h2>🎯 The 7 Real-World Scenarios</h2>
         <ul class="timeline-list">
           <li class="timeline-item">
             <span class="time-stamp">1</span>
@@ -189,19 +189,37 @@
           </li>
           <li class="timeline-item">
             <span class="time-stamp">2</span>
-            <span><strong>Scenario 2 (Opt-Out Flow):</strong> User asks for BigQuery ➜ OpenCode asks <em>"Do you want to login to GCP?"</em> ➜ User replies <em>"No with an opt out"</em> ➜ GCP silenced permanently.</span>
+            <span><strong>Scenario 2 (Respectful Opt-Out Flow):</strong> User asks for BigQuery ➜ OpenCode asks <em>"Do you want to login to GCP?"</em> ➜ User replies <em>"No with an opt out"</em> ➜ GCP silenced permanently.</span>
           </li>
           <li class="timeline-item">
             <span class="time-stamp">3</span>
-            <span><strong>Scenario 3 (Assisted Onboarding):</strong> User asks for BigQuery ➜ OpenCode asks <em>"Do you want to login to GCP?"</em> ➜ User replies <em>"Yes"</em> ➜ Easy `gcloud` onboarding & never prompts again.</span>
+            <span><strong>Scenario 3 (Live Human OAuth & Execution):</strong> User replies <em>"Yes"</em> ➜ Completes browser OAuth login ➜ OpenCode detects active ADC & autonomously runs live BigQuery SQL query.</span>
+          </li>
+          <li class="timeline-item">
+            <span class="time-stamp">4</span>
+            <span><strong>Scenario 4 (Path A: API Key Only):</strong> Environment has <code>GEMINI_API_KEY</code> ➜ Tier 1 Gemini developer tools unlocked directly with zero GCP login prompts.</span>
+          </li>
+          <li class="timeline-item">
+            <span class="time-stamp">5</span>
+            <span><strong>Scenario 5 (Path B: Enterprise SA Mount):</strong> Environment has <code>GOOGLE_APPLICATION_CREDENTIALS</code> ➜ OpenCode passively detects active service account on Turn 1 with zero prompts.</span>
+          </li>
+          <li class="timeline-item">
+            <span class="time-stamp">6</span>
+            <span><strong>Scenario 6 (Path C: Changing Mind):</strong> Previously opted-out user asks to log in ➜ ARD seamlessly flips preference to <code>allowed</code> and guides onboarding.</span>
+          </li>
+          <li class="timeline-item">
+            <span class="time-stamp">7</span>
+            <span><strong>Scenario 7 (Complete Automated E2E Suite):</strong> Real-time containerized execution of all 7 E2E test scenarios and 13 unit tests.</span>
           </li>
         </ul>
       </div>
 
       <div class="card">
-        <h2>🔑 Why This Solves Detractor Concerns</h2>
+        <h2>🔑 Why This Solves Developer & Detractor Concerns</h2>
         <p>• <strong>Zero Account Prerequisite:</strong> Over 60% of entries in the catalog are standalone Tier 0 skills that provide instant local value without any account or API key.</p>
         <p>• <strong>Strict User Agency:</strong> When a user opts out, the agent permanently records the preference and never nags about cloud accounts again.</p>
+        <p>• <strong>Tier 1 API Key Direct Enablement:</strong> Developers with only Gemini API keys get immediate access to models and skills without GCP onboarding.</p>
+        <p>• <strong>Enterprise Headless Friendly:</strong> Automated service accounts mount passively without interactive prompts.</p>
         <p>• <strong>Pre-Execution Clarity:</strong> Proactive <code>status: needs_onboarding</code> metadata prevents blind 401/403 runtime crashes.</p>
       </div>
     </div>

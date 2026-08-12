@@ -32,9 +32,27 @@ case "$SCENARIO" in
     echo -e "\033[1;34m╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝\033[0m"
     ;;
   4)
+    echo -e "\033[1;32m╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗\033[0m"
+    echo -e "\033[1;32m║\033[0m  \033[1;37mSCENARIO 4 (Path A): API Key Only (Tier 1 Gemini Developer API)\033[0m                                      \033[1;32m║\033[0m"
+    echo -e "\033[1;32m║\033[0m  \033[0;33mGEMINI_API_KEY detected -> Gemini developer tools unlocked directly with zero GCP login prompts\033[0m       \033[1;32m║\033[0m"
+    echo -e "\033[1;32m╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝\033[0m"
+    ;;
+  5)
+    echo -e "\033[1;33m╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗\033[0m"
+    echo -e "\033[1;33m║\033[0m  \033[1;37mSCENARIO 5 (Path B): Enterprise Service Account Mount (Tier 3 Automated)\033[0m                            \033[1;33m║\033[0m"
+    echo -e "\033[1;33m║\033[0m  \033[0;33mGOOGLE_APPLICATION_CREDENTIALS mounted -> OpenCode passively enables cloud tools without prompts\033[0m      \033[1;33m║\033[0m"
+    echo -e "\033[1;33m╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝\033[0m"
+    ;;
+  6)
+    echo -e "\033[1;35m╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗\033[0m"
+    echo -e "\033[1;35m║\033[0m  \033[1;37mSCENARIO 6 (Path C): Changing Mind (Opt-Out -> Opt-In Re-Enablement)\033[0m                                 \033[1;35m║\033[0m"
+    echo -e "\033[1;35m║\033[0m  \033[0;33mUser previously opted out -> 'Actually, log me into GCP' -> ARD seamlessly flips to allowed\033[0m           \033[1;35m║\033[0m"
+    echo -e "\033[1;35m╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝\033[0m"
+    ;;
+  7)
     echo -e "\033[1;36m╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗\033[0m"
-    echo -e "\033[1;36m║\033[0m  \033[1;37mAUTOMATED E2E TEST RUNNER IN PODMAN CONTAINER\033[0m                                                       \033[1;36m║\033[0m"
-    echo -e "\033[1;36m║\033[0m  \033[0;33mVerifying all 3 core scenarios with real OpenCode AI agent calls\033[0m                                     \033[1;36m║\033[0m"
+    echo -e "\033[1;36m║\033[0m  \033[1;37mSCENARIO 7: Complete 7-Test Automated E2E Suite in Podman Container\033[0m                                 \033[1;36m║\033[0m"
+    echo -e "\033[1;36m║\033[0m  \033[0;33mExecuting full automated containerized test suite for ARD v0.5 & OpenCode\033[0m                            \033[1;36m║\033[0m"
     echo -e "\033[1;36m╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝\033[0m"
     ;;
 esac

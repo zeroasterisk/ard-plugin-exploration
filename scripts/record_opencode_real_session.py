@@ -270,9 +270,49 @@ def record_opencode_session():
         )
 
         # ---------------------------------------------------------------------
-        # Scenario 4: Automated E2E Test Suite Execution in Container
+        # Scenario 4: Path A: API Key Only (Tier 1 Gemini Developer API)
         # ---------------------------------------------------------------------
         rec.send_turn("./scripts/banner.sh 4", pause_after=1.5, char_delay=0.025)
+        rec.send_turn(
+            "GEMINI_API_KEY=AIzaSy_DEV_KEY ./ask 'I want to generate code with Gemini Developer API using my API key. What tool is available?'",
+            pause_after=3.5,
+            char_delay=0.03,
+        )
+
+        # ---------------------------------------------------------------------
+        # Scenario 5: Path B: Enterprise Service Account Mount (Tier 3 Automated)
+        # ---------------------------------------------------------------------
+        rec.send_turn("./scripts/banner.sh 5", pause_after=1.5, char_delay=0.025)
+        rec.send_turn(
+            "GOOGLE_APPLICATION_CREDENTIALS=/workspace/.config/test_sa.json ./ask 'I want to query an enterprise BigQuery dataset. What tool can do this?'",
+            pause_after=3.5,
+            char_delay=0.03,
+        )
+
+        # ---------------------------------------------------------------------
+        # Scenario 6: Path C: Changing Mind (Opt-Out -> Opt-In Re-Enablement)
+        # ---------------------------------------------------------------------
+        rec.send_turn("./scripts/banner.sh 6", pause_after=1.5, char_delay=0.025)
+        rec.send_turn(
+            './ask "I want to query BigQuery. What tool can do this?"',
+            pause_after=2.0,
+            char_delay=0.035,
+        )
+        rec.send_turn(
+            './ask "No with an opt out"',
+            pause_after=2.0,
+            char_delay=0.035,
+        )
+        rec.send_turn(
+            './ask "Actually, I changed my mind. Please log me into GCP."',
+            pause_after=3.5,
+            char_delay=0.035,
+        )
+
+        # ---------------------------------------------------------------------
+        # Scenario 7: Automated 7-Test E2E Suite Execution in Container
+        # ---------------------------------------------------------------------
+        rec.send_turn("./scripts/banner.sh 7", pause_after=1.5, char_delay=0.025)
         rec.send_turn(
             "python3 tests/e2e_podman_runner.py",
             pause_after=4.0,
