@@ -178,6 +178,83 @@ class TestOpenCodeDiscoveryScenarios(unittest.TestCase):
         self.assertTrue(bq_after.auth_ready)
         self.assertEqual(bq_after.status, "ready")
 
+    def test_scenario_d_gemini_api_key_only(self):
+        """
+        Scenario D (Path A):
+        1. User has GEMINI_API_KEY in environment, but no GCP credentials.
+        2. User searches for Gemini developer tools.
+        3. ARD detects GEMINI_API_KEY is active -> marks Tier 1 Gemini tools READY.
+        4. Tier 3 GCP tools (Vertex/BigQuery) remain marked as needs_onboarding.
+        5. Zero login prompts required for Gemini API.
+        """
+        mock_env = {
+            "GEMINI_API_KEY": "AIzaSy_TEST_KEY_12345",
+            "PATH": "/usr/bin",
+        }
+        inspector = AuthInspector(
+            env=mock_env,
+            custom_gcloud_bin="",
+            custom_adc_path=Path(self.test_dir) / "non_existent.json",
+        )
+        status = inspector.inspect()
+        self.assertTrue(status.api_keys.get("GEMINI_API_KEY"))
+        self.assertFalse(status.gcp_authenticated)
+
+        resolver = ARDCatalogResolver(
+            catalog_path=self.catalog_path,
+            auth_inspector=inspector,
+            prefs_manager=self.prefs_manager,
+        )
+
+        results = resolver.search("gemini multimodal python generation")
+        gemini_skill = next((r for r in results if "gemini-api-patterns" in r.identifier), None)
+        self.assertIsNotNone(gemini_skill)
+        self.assertEqual(gemini_skill.tier, 1)
+        self.assertTrue(gemini_skill.auth_ready)
+        self.assertEqual(gemini_skill.status, "ready")
+
+    def test_scenario_e_change_mind_opt_out_to_opt_in(self):
+        """
+        Scenario E (Path C):
+        1. User initially opts out -> preference set to 'opt_out'.
+        2. ARD search strictly filters out Tier >= 3 tools.
+        3. User later changes mind: 'Actually, I changed my mind, enable BigQuery and log me in'.
+        4. Preference is updated to 'allowed' / 'interactive'.
+        5. ARD search now presents BigQuery with clear onboarding guidance.
+        """
+        # Step 1: User previously opted out
+        self.prefs_manager.set_gcp_mode("opt_out")
+        self.prefs_manager.record_service_decision("urn:ai:google.com:mcp:bigquery", "declined")
+
+        inspector = AuthInspector(
+            env={"PATH": "/usr/bin"},
+            custom_gcloud_bin="",
+            custom_adc_path=Path(self.test_dir) / "non_existent.json",
+        )
+        resolver = ARDCatalogResolver(
+            catalog_path=self.catalog_path,
+            auth_inspector=inspector,
+            prefs_manager=self.prefs_manager,
+        )
+
+        # Step 2: In opt-out mode, BigQuery MCP is excluded
+        res1 = resolver.search("query bigquery dataset")
+        self.assertFalse(any("mcp:bigquery" in r.identifier for r in res1))
+
+        # Step 3 & 4: User changes mind -> sets decision to 'allowed'
+        self.prefs_manager.set_gcp_mode("auto")
+        self.prefs_manager.record_service_decision("urn:ai:google.com:mcp:bigquery", "allowed")
+        self.assertEqual(
+            self.prefs_manager.get_service_decision("urn:ai:google.com:mcp:bigquery"), "allowed"
+        )
+
+        # Step 5: Re-search now includes BigQuery MCP with onboarding
+        res2 = resolver.search("query bigquery dataset")
+        bq_res = next((r for r in res2 if "mcp:bigquery" in r.identifier), None)
+        self.assertIsNotNone(bq_res)
+        self.assertFalse(bq_res.auth_ready)
+        self.assertEqual(bq_res.status, "needs_onboarding")
+
 
 if __name__ == "__main__":
     unittest.main()

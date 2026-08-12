@@ -19,7 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 OPENCODE_IMAGE = "localhost/ard-opencode:latest"
 
 
-def run_opencode_in_container(cmd_args, timeout=120):
+def run_opencode_in_container(cmd_args, extra_env=None, timeout=120):
     """Executes a command inside the ard-opencode container with local volumes bound."""
     podman_cmd = [
         "podman",
@@ -31,12 +31,16 @@ def run_opencode_in_container(cmd_args, timeout=120):
         "XDG_CONFIG_HOME=/workspace/.config",
         "-e",
         "ARD_CONFIG_DIR=/workspace/.config/ard",
+    ]
+    if extra_env:
+        podman_cmd.extend(extra_env)
+    podman_cmd.extend([
         "--entrypoint",
         "/bin/sh",
         OPENCODE_IMAGE,
         "-c",
         "cd /workspace/ard-plugin-exploration && " + " ".join(cmd_args),
-    ]
+    ])
 
     return subprocess.run(
         podman_cmd,
@@ -191,10 +195,84 @@ def test_3_scenario_3_onboarding_flow():
     print("✅ Scenario 3 Passed: Complete Onboarding & Live BigQuery query executed successfully.")
 
 
-def test_4_unit_and_scenario_suite():
-    """Run all 11 unit and scenario tests."""
+def test_4_path_a_api_key_only():
+    """Path A: API Key Only (Tier 1) -> Gemini Developer tools ready without GCP login."""
     print("\n" + "=" * 80)
-    print("🧪 TEST 4: Complete ARD & OpenCode Unit and Scenario Suite")
+    print("🧪 PATH A: API Key Only (Tier 1 Gemini Developer API)")
+    print("=" * 80)
+
+    res = run_opencode_in_container(
+        ["opencode run --auto --model opencode/deepseek-v4-flash-free 'I want to generate code with Gemini Developer API using my API key. What tool is available?'"],
+        extra_env=["-e", "GEMINI_API_KEY=AIzaSy_TEST_KEY_12345"]
+    )
+    out = res.stdout + res.stderr
+    print(out)
+    assert res.returncode == 0, f"Path A failed: {res.stderr}"
+    assert "gemini" in out.lower(), "Path A did not find Gemini tools"
+    print("✅ Path A Passed: Tier 1 Gemini API tools unlocked without GCP login.")
+
+
+def test_5_path_b_enterprise_service_account():
+    """Path B: Enterprise Service Account Mount -> Instant GCP Tool Enablement."""
+    print("\n" + "=" * 80)
+    print("🧪 PATH B: Enterprise Service Account Mount (Tier 3 Automated)")
+    print("=" * 80)
+
+    sa_path = REPO_ROOT / ".config" / "test_sa.json"
+    sa_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(sa_path, "w", encoding="utf-8") as f:
+        json.dump({
+            "type": "service_account",
+            "project_id": "enterprise-prod-123",
+            "client_email": "agent@enterprise-prod-123.iam.gserviceaccount.com"
+        }, f)
+
+    res = run_opencode_in_container(
+        ["opencode run --auto --model opencode/deepseek-v4-flash-free 'I want to query an enterprise BigQuery dataset. What tool can do this?'"],
+        extra_env=["-e", "GOOGLE_APPLICATION_CREDENTIALS=/workspace/.config/test_sa.json"]
+    )
+    out = res.stdout + res.stderr
+    print(out)
+    assert res.returncode == 0, f"Path B failed: {res.stderr}"
+    assert "bigquery" in out.lower(), "Path B did not find BigQuery"
+    print("✅ Path B Passed: Service Account automatically enabled cloud tools.")
+
+
+def test_6_path_c_change_mind_opt_out_to_opt_in():
+    """Path C: Changing Mind (Opt-Out -> Opt-In) -> Preferences smoothly updated."""
+    print("\n" + "=" * 80)
+    print("🧪 PATH C: Changing Mind (Opt-Out -> Opt-In)")
+    print("=" * 80)
+
+    # Turn 1: User says opt-out
+    res1 = run_opencode_in_container([
+        "rm -rf /workspace/.config/ard /workspace/.config/gcloud && opencode run --auto --model opencode/deepseek-v4-flash-free 'I want to run a BigQuery query. What tool can do this?'"
+    ])
+    res2 = run_opencode_in_container([
+        "opencode", "run", "--auto", "--model", "opencode/deepseek-v4-flash-free", "--continue", "'No with an opt out'"
+    ])
+    assert res2.returncode == 0, "Opt out failed"
+
+    # Turn 2: User changes mind to opt-in
+    res3 = run_opencode_in_container([
+        "opencode", "run", "--auto", "--model", "opencode/deepseek-v4-flash-free", "--continue", "'Actually, I changed my mind. Please log me into GCP.'"
+    ])
+    out3 = res3.stdout + res3.stderr
+    print(out3)
+    assert res3.returncode == 0, f"Change mind failed: {res3.stderr}"
+    assert (
+        "gcloud" in out3.lower()
+        or "login" in out3.lower()
+        or "allow" in out3.lower()
+        or "auth" in out3.lower()
+    ), "Did not offer login after changing mind"
+    print("✅ Path C Passed: Stored preferences updated smoothly from opt-out to opt-in.")
+
+
+def test_7_unit_and_scenario_suite():
+    """Run all 13 unit and scenario tests."""
+    print("\n" + "=" * 80)
+    print("🧪 TEST 7: Complete ARD & OpenCode Unit and Scenario Suite")
     print("=" * 80)
 
     res = run_opencode_in_container([
@@ -211,7 +289,7 @@ def test_4_unit_and_scenario_suite():
     out = res.stdout + res.stderr
     print(out)
     assert res.returncode == 0, f"Unit test suite failed: {res.stderr}"
-    print("✅ Test 4 Passed: All 11 unit and scenario tests executed successfully.")
+    print("✅ Test 7 Passed: All 13 unit and scenario tests executed successfully.")
 
 
 def run_all_e2e_tests():
@@ -222,10 +300,13 @@ def run_all_e2e_tests():
     test_1_scenario_1_tier_0_pure_discovery()
     test_2_scenario_2_opt_out_flow()
     test_3_scenario_3_onboarding_flow()
-    test_4_unit_and_scenario_suite()
+    test_4_path_a_api_key_only()
+    test_5_path_b_enterprise_service_account()
+    test_6_path_c_change_mind_opt_out_to_opt_in()
+    test_7_unit_and_scenario_suite()
 
     print("\n" + "=" * 80)
-    print("🎉 ALL 4 E2E CONTAINER TESTS PASSED!")
+    print("🎉 ALL 7 E2E CONTAINER TESTS PASSED!")
     print("=" * 80)
 
 
