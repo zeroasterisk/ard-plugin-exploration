@@ -277,6 +277,7 @@ def record_opencode_session():
             "python3 tests/e2e_podman_runner.py",
             pause_after=4.0,
             char_delay=0.03,
+            timeout=300.0,
         )
 
     finally:
