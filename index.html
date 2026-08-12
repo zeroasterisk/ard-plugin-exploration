@@ -148,6 +148,45 @@
       min-width: 45px;
     }
 
+    /* Flowchart Toolbar & Zoom */
+    .chart-toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .zoom-btn {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--primary);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .zoom-btn:hover {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .mermaid svg {
+      font-size: 16px !important;
+      max-width: none !important;
+      height: auto !important;
+    }
+    .mermaid .nodeLabel {
+      font-size: 15px !important;
+      line-height: 1.45 !important;
+    }
+    .mermaid .edgeLabel {
+      font-size: 13.5px !important;
+      color: #e2e8f0 !important;
+      background-color: #0f172a !important;
+      padding: 2px 4px !important;
+      border-radius: 4px !important;
+    }
+
     footer {
       text-align: center;
       margin-top: 40px;
@@ -236,36 +275,58 @@
 
     <!-- Decision Flowchart Section -->
     <div class="card" style="margin-bottom:32px;">
-      <h2>🧭 Autonomous Agent Decision & Progressive Auth Flowchart</h2>
-      <p style="margin-bottom:16px;">How the autonomous agent navigates auth tiers, respects user opt-out preferences, and minimizes human friction:</p>
-      <div style="display:flex; justify-content:center; background:rgba(15,23,42,0.7); border:1px solid var(--card-border); border-radius:8px; padding:20px; overflow-x:auto;">
-        <pre class="mermaid" style="margin:0; text-align:center;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+        <div>
+          <h2 style="margin:0 0 4px;">🧭 Autonomous Agent Decision & Progressive Auth Flowchart</h2>
+          <p style="margin:0; font-size:0.95rem; color:var(--text-muted);">How the autonomous agent navigates auth tiers, respects user opt-out preferences, and minimizes human friction.</p>
+        </div>
+        <div class="chart-toolbar">
+          <button class="zoom-btn" onclick="zoomChart(0.15)" title="Zoom In">🔍 +</button>
+          <button class="zoom-btn" onclick="zoomChart(-0.15)" title="Zoom Out">🔍 −</button>
+          <button class="zoom-btn" onclick="resetChartZoom()" title="Reset Size">↺ Reset</button>
+          <button class="zoom-btn" onclick="toggleFullscreenChart()" title="Toggle Fullscreen">⛶ Fullscreen</button>
+        </div>
+      </div>
+
+      <div id="flowchart-container" style="position:relative; background:rgba(15,23,42,0.85); border:1px solid var(--card-border); border-radius:10px; padding:24px 16px; overflow:auto; max-height:850px;">
+        <div id="chart-zoom-target" style="min-width:960px; display:flex; justify-content:center; transform-origin:top center; transition:transform 0.15s ease;">
+          <pre class="mermaid" style="margin:0; text-align:center; font-size:16px;">
 flowchart TD
-    A["Developer Prompt to AI Agent"] --> B{"Requires Auth?"}
+    classDef entry fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc,font-weight:bold;
+    classDef decision fill:#1e1e38,stroke:#818cf8,stroke-width:2px,color:#f8fafc,font-weight:bold;
+    classDef tier0 fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#f0fdf4;
+    classDef tier1 fill:#4c1d95,stroke:#c084fc,stroke-width:2px,color:#faf5ff;
+    classDef tier3 fill:#0c4a6e,stroke:#38bdf8,stroke-width:2px,color:#f0f9ff;
+    classDef optout fill:#4c0519,stroke:#fb7185,stroke-width:2px,color:#fff1f2;
+    classDef success fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#ecfdf5,font-weight:bold;
+    classDef onboard fill:#78350f,stroke:#f59e0b,stroke-width:2px,color:#fffbeb;
+
+    A["<b>Developer Prompt to AI Agent</b>"]:::entry --> B{"<b>Auth Tier Required?</b>"}:::decision
     
-    B -- "Tier 0: No Auth<br/>(Docs, Architectural Guidelines, Standalone Skills)" --> C["Agent directly provides skills & recommendations<br/><b>Human Burden: 0</b>"]
+    B -- "<b>Tier 0: No Auth</b><br/>(Docs, Skills, Architectural Guidelines)" --> C["<b>Direct Capability Delivery</b><br/>Agent provides skills & recommendations<br/><i>Human Burden: 0</i>"]:::tier0
     
-    B -- "Tier 1: API Key<br/>(Gemini Developer API, Public Endpoints)" --> D{"API Key Present in Env?<br/>(e.g. GEMINI_API_KEY)"}
+    B -- "<b>Tier 1: API Key</b><br/>(Gemini Developer API)" --> D{"<b>API Key Present?</b><br/>(GEMINI_API_KEY)"}:::decision
     
-    D -- "Yes" --> E["Agent executes API calls directly<br/><b>Human Burden: 0</b>"]
-    D -- "No" --> F["Agent advises setting API key / offline fallback<br/><b>Human Burden: 1 export command</b>"]
+    D -- "<b>Yes</b>" --> E["<b>Direct Execution</b><br/>Agent calls Gemini API directly<br/><i>Human Burden: 0</i>"]:::tier1
+    D -- "<b>No</b>" --> F["<b>Guidance / Offline Fallback</b><br/>Agent advises setting key or uses fallback<br/><i>Human Burden: 1 export command</i>"]:::tier1
     
-    B -- "Tier 2/3: Google Cloud Managed Tools<br/>(BigQuery, Vertex AI, AlloyDB)" --> G{"GCP Auth Present in Environment?<br/>(User ADC or Service Account)"}
+    B -- "<b>Tier 2/3: Google Cloud Tools</b><br/>(BigQuery, Vertex AI, AlloyDB)" --> G{"<b>GCP Auth in Environment?</b><br/>(Active ADC or Service Account)"}:::decision
     
-    G -- "Yes" --> H["Agent executes cloud workload directly<br/><b>Human Burden: 0</b>"]
+    G -- "<b>Yes (SA Key / ADC)</b>" --> H["<b>Direct Cloud Execution</b><br/>Agent executes BigQuery/cloud queries<br/><i>Human Burden: 0</i>"]:::success
     
-    G -- "No Auth & No Opt-Out Recorded" --> I["Agent asks: 'Do you want to log in to GCP?'"]
+    G -- "<b>No Auth & No Opt-Out</b>" --> I["<b>Proactive Consent Ask</b><br/>Agent asks: <i>'Do you want to log in to GCP?'</i>"]:::onboard
     
-    I -- "User: 'No with an opt out'" --> J["Agent records opt-out preference.<br/>Permanently silences GCP tools & offers local alternatives.<br/><b>Human Burden: 1 natural refusal</b>"]
+    I -- "<b>User: 'No with an opt out'</b>" --> J["<b>Respectful Opt-Out Stored</b><br/>Permanently silences GCP tools.<br/>Offers local Tier 0 alternatives.<br/><i>Human Burden: 1 natural refusal</i>"]:::optout
     
-    I -- "User: 'Yes'" --> K["Agent records consent & guides minimal onboarding:<br/><code>gcloud auth application-default login --no-launch-browser</code><br/><b>Human Boundary: One-time Browser OAuth</b>"]
+    I -- "<b>User: 'Yes'</b>" --> K["<b>Assisted Browser OAuth</b><br/>Agent guides: <code>gcloud auth application-default login</code><br/><i>Human Boundary: One-time Browser OAuth</i>"]:::onboard
     
-    K --> L["User completes browser OAuth & pastes code"]
+    K --> L["<b>Human OAuth Completion</b><br/>Developer completes sign-in in browser"]:::onboard
     L --> H
     
-    J -.-> M["User changes mind: 'Actually, log me in'"]
+    J -.->|"<b>User changes mind:<br/>'Actually, log me in'</b>"| M["<b>Seamless Re-Enablement</b><br/>ARD flips preference to <code>allowed</code>"]:::onboard
     M --> K
-        </pre>
+          </pre>
+        </div>
       </div>
     </div>
 
@@ -285,18 +346,55 @@ flowchart TD
       fit: 'width'
     });
 
+    let currentZoom = 1.0;
+    function zoomChart(delta) {
+      currentZoom = Math.min(Math.max(0.6, currentZoom + delta), 2.2);
+      const target = document.getElementById('chart-zoom-target');
+      if (target) {
+        target.style.transform = `scale(${currentZoom})`;
+      }
+    }
+    function resetChartZoom() {
+      currentZoom = 1.0;
+      const target = document.getElementById('chart-zoom-target');
+      if (target) {
+        target.style.transform = `scale(1.0)`;
+      }
+    }
+    function toggleFullscreenChart() {
+      const container = document.getElementById('flowchart-container');
+      if (!document.fullscreenElement) {
+        if (container.requestFullscreen) {
+          container.requestFullscreen();
+        } else if (container.webkitRequestFullscreen) {
+          container.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
     mermaid.initialize({
       startOnLoad: true,
       theme: 'dark',
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true,
+        curve: 'basis'
+      },
       themeVariables: {
+        fontSize: '16px',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         darkMode: true,
         background: '#0f172a',
-        primaryColor: '#38bdf8',
+        primaryColor: '#1e293b',
         primaryTextColor: '#f8fafc',
-        primaryBorderColor: '#0284c7',
+        primaryBorderColor: '#38bdf8',
         lineColor: '#94a3b8',
-        secondaryColor: '#a855f7',
-        tertiaryColor: '#1e293b'
+        secondaryColor: '#334155',
+        tertiaryColor: '#0f172a'
       }
     });
   </script>
