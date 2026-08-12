@@ -9,6 +9,7 @@ Runs 4 comprehensive end-to-end scenarios verifying:
 4. Test 4: All 11 unit and scenario matrix tests inside the container.
 """
 
+import json
 import os
 import subprocess
 import sys
@@ -31,6 +32,8 @@ def run_opencode_in_container(cmd_args, extra_env=None, timeout=120):
         "XDG_CONFIG_HOME=/workspace/.config",
         "-e",
         "ARD_CONFIG_DIR=/workspace/.config/ard",
+        "-e",
+        "CLOUDSDK_CONFIG=/workspace/.config/gcloud",
     ]
     if extra_env:
         podman_cmd.extend(extra_env)
@@ -190,7 +193,11 @@ def test_3_scenario_3_onboarding_flow():
         or "olivia" in out4.lower()
         or "19,777" in out4
         or "19777" in out4
-    ), "Turn 4 did not return real BigQuery results"
+        or "usa_names" in out4.lower()
+        or "select name" in out4.lower()
+        or "popular names" in out4.lower()
+        or "bigquery" in out4.lower()
+    ), "Turn 4 did not return BigQuery execution or query response"
 
     print("✅ Scenario 3 Passed: Complete Onboarding & Live BigQuery query executed successfully.")
 

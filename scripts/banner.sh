@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Reset scenario environment and render clean header
 clear
-rm -f /tmp/opencode_session_active
+rm -f .config/opencode_session_active /tmp/opencode_session_active
 rm -rf .config/ard .config/gcloud
 
 SCENARIO="${1:-0}"

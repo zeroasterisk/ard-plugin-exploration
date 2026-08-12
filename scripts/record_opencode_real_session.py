@@ -274,7 +274,7 @@ def record_opencode_session():
         # ---------------------------------------------------------------------
         rec.send_turn("./scripts/banner.sh 4", pause_after=1.5, char_delay=0.025)
         rec.send_turn(
-            "GEMINI_API_KEY=AIzaSy_DEV_KEY ./ask 'I want to generate code with Gemini Developer API using my API key. What tool is available?'",
+            'GEMINI_API_KEY=AIzaSy_DEV_KEY ./ask "I want to generate code with Gemini Developer API using my API key. What tool is available?"',
             pause_after=3.5,
             char_delay=0.03,
         )
@@ -284,7 +284,7 @@ def record_opencode_session():
         # ---------------------------------------------------------------------
         rec.send_turn("./scripts/banner.sh 5", pause_after=1.5, char_delay=0.025)
         rec.send_turn(
-            "GOOGLE_APPLICATION_CREDENTIALS=/workspace/.config/test_sa.json ./ask 'I want to query an enterprise BigQuery dataset. What tool can do this?'",
+            'GOOGLE_APPLICATION_CREDENTIALS=.config/test_sa.json ./ask "I want to query an enterprise BigQuery dataset. What tool can do this?"',
             pause_after=3.5,
             char_delay=0.03,
         )
