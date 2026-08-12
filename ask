@@ -24,11 +24,27 @@ else
   touch ".config/opencode_session_active"
 fi
 
+# Support external GOOGLE_APPLICATION_CREDENTIALS paths from host
+SA_MOUNT_OPTS=()
+SA_ENV_OPTS=()
+if [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+  if [ -f "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+    REAL_SA_PATH="$(realpath "$GOOGLE_APPLICATION_CREDENTIALS")"
+    SA_MOUNT_OPTS=("-v" "${REAL_SA_PATH}:/workspace/.config/active_sa.json:ro")
+    SA_ENV_OPTS=("-e" "GOOGLE_APPLICATION_CREDENTIALS=/workspace/.config/active_sa.json")
+  else
+    SA_ENV_OPTS=("-e" "GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS")
+  fi
+fi
+
 podman run --rm \
   -v "$(pwd):/workspace/ard-plugin-exploration" \
+  "${SA_MOUNT_OPTS[@]}" \
   -e XDG_CONFIG_HOME="/workspace/.config" \
   -e ARD_CONFIG_DIR="/workspace/.config/ard" \
   -e CLOUDSDK_CONFIG="/workspace/.config/gcloud" \
+  -e GEMINI_API_KEY="${GEMINI_API_KEY:-}" \
+  "${SA_ENV_OPTS[@]}" \
   --entrypoint /bin/sh \
   localhost/ard-opencode:latest \
   -c "cd /workspace/ard-plugin-exploration && opencode run --auto --model opencode/deepseek-v4-flash-free $SESSION_FLAG \"$PROMPT\""
