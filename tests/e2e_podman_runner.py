@@ -123,13 +123,13 @@ def test_2_scenario_2_opt_out_flow():
 
 
 def test_3_scenario_3_onboarding_flow():
-    """Scenario 3: Unauthenticated Cloud Intent -> User: 'Yes' -> OpenCode facilitates easy onboarding."""
+    """Scenario 3: Unauthenticated Cloud Intent -> User: 'Yes' -> Human OAuth -> OpenCode executes live BigQuery query."""
     print("\n" + "=" * 80)
-    print("🧪 SCENARIO 3: Cloud Intent -> User Onboards ('Yes') -> Easy Onboarding")
+    print("🧪 SCENARIO 3: Cloud Intent -> User Onboards ('Yes') -> Human OAuth & Live BigQuery Query")
     print("=" * 80)
 
     # Turn 1: Reset prefs & ask for BigQuery query
-    turn1_cmd = "rm -rf /workspace/.config/ard && opencode run --auto --model opencode/deepseek-v4-flash-free 'I want to query a public BigQuery dataset. What tool can do this?'"
+    turn1_cmd = "rm -rf /workspace/.config/ard /workspace/.config/gcloud && opencode run --auto --model opencode/deepseek-v4-flash-free 'I want to query a public BigQuery dataset. What tool can do this?'"
     res1 = run_opencode_in_container([turn1_cmd])
     out1 = res1.stdout + res1.stderr
     print("--- Turn 1 (Agent Response) ---")
@@ -159,7 +159,36 @@ def test_3_scenario_3_onboarding_flow():
         or "credentials" in out2.lower()
     ), "Turn 2 did not provide onboarding guidance"
 
-    print("✅ Scenario 3 Passed: OpenCode facilitated easy GCP login onboarding.")
+    # Turn 3: Emulate human OAuth flow
+    print("--- Turn 3 (Human OAuth Flow) ---")
+    res3 = subprocess.run(["./scripts/do_oauth_login.sh"], cwd=str(REPO_ROOT), capture_output=True, text=True)
+    print(res3.stdout)
+    assert res3.returncode == 0, f"Turn 3 OAuth failed: {res3.stderr}"
+
+    # Turn 4: Post-Auth Query
+    turn4_prompt = "'Run a query to find the 5 most popular names in 2020 from bigquery-public-data.usa_names.usa_1910_current and summarize the results.'"
+    res4 = run_opencode_in_container([
+        "opencode",
+        "run",
+        "--auto",
+        "--model",
+        "opencode/deepseek-v4-flash-free",
+        "--continue",
+        turn4_prompt,
+    ])
+    out4 = res4.stdout + res4.stderr
+    print("--- Turn 4 (Post-Auth Live Query Response) ---")
+    print(out4)
+    assert res4.returncode == 0, f"Turn 4 failed: {res4.stderr}"
+    assert (
+        "liam" in out4.lower()
+        or "noah" in out4.lower()
+        or "olivia" in out4.lower()
+        or "19,777" in out4
+        or "19777" in out4
+    ), "Turn 4 did not return real BigQuery results"
+
+    print("✅ Scenario 3 Passed: Complete Onboarding & Live BigQuery query executed successfully.")
 
 
 def test_4_unit_and_scenario_suite():

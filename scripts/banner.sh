@@ -2,7 +2,7 @@
 # Reset scenario environment and render clean header
 clear
 rm -f /tmp/opencode_session_active
-rm -rf .config/ard
+rm -rf .config/ard .config/gcloud
 
 SCENARIO="${1:-0}"
 
@@ -27,8 +27,8 @@ case "$SCENARIO" in
     ;;
   3)
     echo -e "\033[1;34m╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗\033[0m"
-    echo -e "\033[1;34m║\033[0m  \033[1;37mSCENARIO 3: Cloud Intent -> User Onboards ('Yes') -> Easy Onboarding\033[0m                               \033[1;34m║\033[0m"
-    echo -e "\033[1;34m║\033[0m  \033[0;33mOpenCode asks 'Do you want to login to GCP?' -> User: 'Yes' -> Easy gcloud login -> Never prompts again\033[0m\033[1;34m║\033[0m"
+    echo -e "\033[1;34m║\033[0m  \033[1;37mSCENARIO 3: Cloud Intent -> User Onboards ('Yes') -> Human OAuth & Live BigQuery Execution\033[0m           \033[1;34m║\033[0m"
+    echo -e "\033[1;34m║\033[0m  \033[0;33mOpenCode asks to login -> User: 'Yes' -> Human OAuth -> OpenCode executes live BigQuery query\033[0m       \033[1;34m║\033[0m"
     echo -e "\033[1;34m╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝\033[0m"
     ;;
   4)

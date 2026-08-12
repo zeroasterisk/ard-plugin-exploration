@@ -3,10 +3,11 @@ FROM ghcr.io/anomalyco/opencode:latest
 
 # Install python3, git, tar, curl, bash and extract google-cloud-sdk
 USER root
-RUN apk add --no-cache python3 git curl bash tar && \
+RUN apk add --no-cache python3 py3-pip git curl bash tar && \
     curl -sSL https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz | tar -xz -C /usr/local && \
     ln -sf /usr/local/google-cloud-sdk/bin/gcloud /usr/bin/gcloud && \
-    ln -sf /usr/local/google-cloud-sdk/bin/bq /usr/bin/bq
+    ln -sf /usr/local/google-cloud-sdk/bin/bq /usr/bin/bq && \
+    python3 -m pip install --break-system-packages google-auth google-cloud-bigquery requests
 
 ENV CLOUDSDK_PYTHON=/usr/bin/python3
 ENV PATH="/usr/local/google-cloud-sdk/bin:${PATH}"

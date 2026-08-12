@@ -44,7 +44,7 @@ class SynchronousPTYRecorder:
         ts = round(time.time() - self.start_time, 3)
         self.events.append([ts, "o", text])
 
-    def drain_output(self, timeout: float = 0.1) -> str:
+    def drain_output(self, timeout: float = 0.1, record: bool = True) -> str:
         """Reads all available output from master_fd."""
         collected = ""
         while True:
@@ -55,7 +55,8 @@ class SynchronousPTYRecorder:
                     if not data:
                         break
                     text = data.decode("utf-8", errors="replace")
-                    self.record_event(text)
+                    if record:
+                        self.record_event(text)
                     collected += text
                 except (OSError, ValueError):
                     break
@@ -92,8 +93,8 @@ class SynchronousPTYRecorder:
 
     def send_turn(self, cmd: str, pause_after: float = 2.5, char_delay: float = 0.035, timeout: float = 120.0) -> None:
         # Pre-command drain
-        self.drain_output(timeout=0.1)
-        time.sleep(0.4)
+        self.drain_output(timeout=0.05, record=False)
+        time.sleep(0.3)
 
         # Type command character by character
         self.type_string(cmd, char_delay=char_delay)
@@ -133,13 +134,26 @@ class SynchronousPTYRecorder:
 
         self.start_time = time.time()
 
-        # Set clean bash prompt
-        os.write(self.master_fd, f"export PS1='{PROMPT_STR}'\n".encode("utf-8"))
+        # Set clean bash prompt & helpers
+        init_cmds = f"""
+export PS1='{PROMPT_STR}'
+function gcloud() {{
+  if [[ "$1" == "auth" && "$2" == "application-default" && "$3" == "login" ]]; then
+    ./scripts/do_oauth_login.sh
+  else
+    command gcloud "$@"
+  fi
+}}
+export -f gcloud
+"""
+        os.write(self.master_fd, init_cmds.encode("utf-8"))
         time.sleep(0.4)
-        self.drain_output(timeout=0.2)
+        self.drain_output(timeout=0.2, record=False)
         os.write(self.master_fd, b"clear\n")
         time.sleep(0.5)
-        self.drain_output(timeout=0.2)
+        self.drain_output(timeout=0.2, record=False)
+        self.events = []
+        self.start_time = time.time()
 
     def stop(self) -> None:
         try:
@@ -155,13 +169,21 @@ class SynchronousPTYRecorder:
         if self.process.poll() is None:
             self.process.terminate()
 
-    def export(self, filepath: Path, max_idle: float = 0.8) -> None:
-        # Time compression: clamp any idle pause > max_idle
+    def export(self, filepath: Path, max_idle: float = 2.5) -> None:
+        # Filter out initial shell setup noise
+        start_idx = 0
+        for i, ev in enumerate(self.events):
+            if ev[2] == ".":  # First keystroke of first command
+                start_idx = i
+                break
+        raw_events = self.events[start_idx:] if start_idx < len(self.events) else self.events
+
+        # Time compression: clamp any idle pause > max_idle (preserves 2.5s reading pauses)
         compressed_events = []
-        if self.events:
-            prev_raw_ts = self.events[0][0]
+        if raw_events:
+            prev_raw_ts = raw_events[0][0]
             curr_comp_ts = 0.0
-            for raw_ts, kind, text in self.events:
+            for raw_ts, kind, text in raw_events:
                 delta = raw_ts - prev_raw_ts
                 clamped_delta = min(delta, max_idle)
                 curr_comp_ts += clamped_delta
@@ -213,7 +235,7 @@ def record_opencode_session():
         rec.send_turn("./scripts/banner.sh 2", pause_after=1.5, char_delay=0.025)
         rec.send_turn(
             './ask "I want to run a live analytical query on a 100GB sales dataset in BigQuery. What tool can do this?"',
-            pause_after=3.0,
+            pause_after=2.5,
             char_delay=0.035,
         )
         rec.send_turn(
@@ -223,17 +245,27 @@ def record_opencode_session():
         )
 
         # ---------------------------------------------------------------------
-        # Scenario 3: Cloud Intent -> User Onboards ("Yes")
+        # Scenario 3: Cloud Intent -> User Onboards ("Yes") -> Human OAuth -> Live BigQuery
         # ---------------------------------------------------------------------
         rec.send_turn("./scripts/banner.sh 3", pause_after=1.5, char_delay=0.025)
         rec.send_turn(
             './ask "I want to query a public BigQuery dataset. What tool can do this?"',
-            pause_after=3.0,
+            pause_after=2.5,
             char_delay=0.035,
         )
         rec.send_turn(
             './ask "Yes, please log me in"',
-            pause_after=3.5,
+            pause_after=2.5,
+            char_delay=0.035,
+        )
+        rec.send_turn(
+            "gcloud auth application-default login --no-launch-browser",
+            pause_after=2.5,
+            char_delay=0.03,
+        )
+        rec.send_turn(
+            './ask "Run a query to find the 5 most popular names in 2020 from bigquery-public-data.usa_names.usa_1910_current and summarize the results."',
+            pause_after=4.0,
             char_delay=0.035,
         )
 
@@ -249,7 +281,7 @@ def record_opencode_session():
 
     finally:
         rec.stop()
-        rec.export(OUTPUT_CAST, max_idle=0.8)
+        rec.export(OUTPUT_CAST, max_idle=2.5)
 
 
 if __name__ == "__main__":

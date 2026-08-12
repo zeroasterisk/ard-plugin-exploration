@@ -21,6 +21,7 @@ podman run --rm \
   -v "$(pwd):/workspace/ard-plugin-exploration" \
   -e XDG_CONFIG_HOME="/workspace/.config" \
   -e ARD_CONFIG_DIR="/workspace/.config/ard" \
+  -e CLOUDSDK_CONFIG="/workspace/.config/gcloud" \
   --entrypoint /bin/sh \
   localhost/ard-opencode:latest \
   -c "cd /workspace/ard-plugin-exploration && opencode run --auto --model opencode/deepseek-v4-flash-free $SESSION_FLAG \"$PROMPT\""
